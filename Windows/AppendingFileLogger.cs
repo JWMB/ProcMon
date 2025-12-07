@@ -1,0 +1,107 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Configuration;
+using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
+
+public static class AppendingFileLoggerExtensions
+{
+	public static ILoggingBuilder AddAppendingFileLogger(this ILoggingBuilder builder)
+	{
+		builder.AddConfiguration();
+		builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, AppendingFileLoggerProvider>());
+		LoggerProviderOptions.RegisterProviderOptions<AppendingFileLoggerConfig, AppendingFileLoggerProvider>(builder.Services);
+		return builder;
+	}
+
+	public static ILoggingBuilder AddAppendingFileLogger(this ILoggingBuilder builder, Action<AppendingFileLoggerConfig> configure)
+	{
+		builder.AddAppendingFileLogger();
+		builder.Services.Configure(configure);
+		return builder;
+	}
+}
+
+public sealed class AppendingFileLoggerProvider : ILoggerProvider
+{
+	private readonly IDisposable? _onChangeToken;
+	private AppendingFileLoggerConfig _currentConfig;
+	private readonly ConcurrentDictionary<string, ILogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
+	private readonly ConcurrentDictionary<string, FileStream> pathToFilestream = new(StringComparer.OrdinalIgnoreCase);
+
+	public AppendingFileLoggerProvider(IOptionsMonitor<AppendingFileLoggerConfig> config)
+	{
+		_currentConfig = config.CurrentValue;
+		_onChangeToken = config.OnChange(updatedConfig => _currentConfig = updatedConfig);
+	}
+
+	public ILogger CreateLogger(string categoryName)
+	{
+		if (string.IsNullOrEmpty(_currentConfig.Filepath))
+			throw new ArgumentException($"No file path provided");
+
+		var fs = pathToFilestream.GetOrAdd(_currentConfig.Filepath, name => new FileStream(_currentConfig.Filepath, FileMode.Append, FileAccess.Write));
+		return _loggers.GetOrAdd(categoryName, name => new AppendingFileLogger(name, _currentConfig, fs));
+	}
+
+	public void Dispose()
+	{
+		foreach (var item in pathToFilestream.Values)
+			item.Dispose();
+		_loggers.Clear();
+		_onChangeToken?.Dispose();
+	}
+}
+public class AppendingFileLoggerConfig
+{
+	public string Filepath { get; set; } = string.Empty;
+}
+
+public class AppendingFileLogger : IDisposable, ILogger
+{
+	//private FileStream fs;
+	private StreamWriter sw;
+	private DateTime lastFlush = DateTime.MinValue;
+
+	private bool isDisposed = false;
+
+	public AppendingFileLogger(string name, AppendingFileLoggerConfig config, FileStream fs) // string filepath)
+	{
+		var filepath = config.Filepath;
+		//if (fs == null)
+		//	fs = new FileStream(filepath, FileMode.Append, FileAccess.Write);
+		sw = new StreamWriter(fs);
+	}
+
+	public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+	public bool IsEnabled(LogLevel logLevel) => true;
+
+	public void Dispose()
+	{
+		if (isDisposed) return;
+		isDisposed = true;
+		sw.Flush();
+		sw.Dispose();
+		//fs.Dispose();
+	}
+
+	public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+	{
+		var message = formatter(state, exception);
+		if (message.Any() != true || message == "[null]")
+			return;
+
+		var formatted = $">{DateTime.Now:yyyy-MM-dd HH:mm:ss}: {message}";
+		//Console.WriteLine(formatted);
+
+		//await sw.WriteLineAsync(formatted);
+		sw.WriteLine(formatted);
+
+		if ((DateTime.Now - lastFlush).TotalSeconds > 5)
+		{
+			sw.Flush();
+			lastFlush = DateTime.Now;
+		}
+	}
+}

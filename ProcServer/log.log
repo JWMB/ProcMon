@@ -1,0 +1,133 @@
+2025-11-23T20:23:03Z {"Action":"Start","Application":"APP","Title":"","Id":0}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"tposd","Title":"","Id":12068}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"explorer","Title":"","Id":6696}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"TextInputHost","Title":"Windows Input Experience","Id":15700}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"firefox","Title":"Send and ingest OTLP data | OpenTelemetry documentation \u2014 Mozilla Firefox","Id":16356}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"firefox","Title":"Deconstructing? Call Seth Andrews \u0026 Aaron Adair | SkepTalk 11.10.25 - YouTube \u2014 Firefox Developer Edition","Id":6916}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"ms-teams","Title":"Activity | Uppstartsm\u00F6te Executive Education - B-Engaged | B-engaged AB | jonas.beckeman@b-engaged.se | Microsoft Teams","Id":23480}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"Slack","Title":"ki-alerts (Channel) - Monsterland - Slack","Id":20604}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"ApplicationFrameHost","Title":"Settings","Id":19972}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"SystemSettings","Title":"Settings","Id":13400}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"OUTLOOK","Title":"1 Reminder(s)","Id":30748}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"GitExtensions","Title":"WebProcessor (main) - Git Extensions","Id":27712}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"Code","Title":"Chat.tsx - TrainingClient.Chat - Visual Studio Code","Id":33416}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe","Id":35020}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"devenv","Title":"ProcMon (Running) - ILogItemParser.cs - Microsoft Visual Studio","Id":20164}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"devenv","Title":"TrainingClient - secrets.json - Microsoft Visual Studio","Id":58740}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"msedge","Title":"kistudysync.azurewebsites.net/admin/teacher?impersonate=jonas.beckeman%40gmail.com\u0026group=self and 1 more page - [InPrivate] - Microsoft\u200B Edge","Id":65412}
+2025-11-23T20:23:03Z {"Action":"Start","Application":"explorer","Title":"ProcMon - File Explorer","Id":60136}
+2025-11-23T20:23:03Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe","Id":35020}
+2025-11-23T20:23:05Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ILogItemParser.cs - Microsoft Visual Studio","Id":20164}
+2025-11-23T20:23:08Z {"Action":"Focus","Application":"explorer","Title":"Task Switching","Id":6696}
+2025-11-23T20:23:09Z {"Action":"Focus","Application":"WindowsTerminal","Title":"Windows PowerShell","Id":35020}
+2025-11-23T20:23:14Z {"Action":"Focus","Application":"explorer","Title":"","Id":6696}
+2025-11-23T20:23:15Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ILogItemParser.cs - Microsoft Visual Studio","Id":20164}
+2025-11-23T20:23:18Z {"Action":"Focus","Application":"WindowsTerminal","Title":"Windows PowerShell","Id":35020}
+2025-11-23T20:23:27Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ILogItemParser.cs - Microsoft Visual Studio","Id":20164}
+2025-11-23T20:23:32Z {"Action":"Focus","Application":"explorer","Title":"","Id":6696}
+2025-11-23T20:23:33Z {"Action":"Focus","Application":"WindowsTerminal","Title":"Windows PowerShell","Id":35020}
+2025-11-23T20:23:35Z {"Action":"Focus","Application":"explorer","Title":"","Id":6696}
+2025-11-23T20:23:36Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ILogItemParser.cs - Microsoft Visual Studio","Id":20164}
+2025-11-23T20:23:41Z {"Action":"Focus","Application":"WindowsTerminal","Title":"Windows PowerShell","Id":35020}
+2025-11-23T20:23:46Z {"Action":"Focus","Application":"explorer","Title":"Task Switching","Id":6696}
+2025-11-23T20:23:49Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ILogItemParser.cs - Microsoft Visual Studio","Id":20164}
+23T20:21:06Z {"Action":"Focus","Application":"WindowsTerminal","Title":"Windows PowerShell","Id":35020}
+2025-11-23T20:21:12Z {"Action":"Focus","Application":"explorer","Title":"Task Switching","Id":6696}
+2025-11-23T20:21:14Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ILogItemParser.cs - Microsoft Visual Studio","Id":20164}
+2025-11-23T20:21:25Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ILogItemParser.cs* - Microsoft Visual Studio","Id":20164}
+2025-11-23T20:22:05Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ILogItemParser.cs - Microsoft Visual Studio","Id":20164}
+urewebsites.net/admin/teacher?impersonate=jonas.beckeman%40gmail.com\u0026group=self and 1 more page - [InPrivate] - Microsoft\u200B Edge"}
+2025-11-23T19:46:54Z {"Action":"Start","Application":"explorer","Title":"ProcMon - File Explorer"}
+2025-11-23T19:46:54Z {"Action":"Focus","Application":"explorer","Title":""}
+2025-11-23T19:46:55Z {"Action":"Focus","Application":"WindowsTerminal","Title":"Windows PowerShell"}
+2025-11-23T19:47:06Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:47:06Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:47:13Z {"Action":"Focus","Application":"WindowsTerminal","Title":"Windows PowerShell"}
+2025-11-23T19:47:13Z {"Action":"Focus","Application":"WindowsTerminal","Title":"Windows PowerShell"}
+2025-11-23T19:47:21Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:47:21Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:47:25Z {"Action":"Focus","Application":"explorer","Title":"Task Switching"}
+2025-11-23T19:47:25Z {"Action":"Focus","Application":"explorer","Title":"Task Switching"}
+2025-11-23T19:47:28Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - IngestionController.cs - Microsoft Visual Studio"}
+2025-11-23T19:47:28Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - IngestionController.cs - Microsoft Visual Studio"}
+2025-11-23T19:47:30Z {"Action":"Focus","Application":"devenv","Title":""}
+2025-11-23T19:47:30Z {"Action":"Focus","Application":"devenv","Title":""}
+2025-11-23T19:47:31Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - IngestionController.cs - Microsoft Visual Studio"}
+2025-11-23T19:47:31Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - IngestionController.cs - Microsoft Visual Studio"}
+2025-11-23T19:48:33Z {"Action":"Start","Application":"APP","Title":""}
+2025-11-23T19:48:33Z {"Action":"Start","Application":"APP","Title":""}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"tposd","Title":""}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"explorer","Title":""}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"TextInputHost","Title":"Windows Input Experience"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"firefox","Title":"Send and ingest OTLP data | OpenTelemetry documentation \u2014 Mozilla Firefox"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"firefox","Title":"(1) Activity | Henrik Widaeus | LinkedIn \u2014 Firefox Developer Edition"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"ms-teams","Title":"Activity | Uppstartsm\u00F6te Executive Education - B-Engaged | B-engaged AB | jonas.beckeman@b-engaged.se | Microsoft Teams"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"Slack","Title":"ki-alerts (Channel) - Monsterland - Slack"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"ApplicationFrameHost","Title":"Settings"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"SystemSettings","Title":"Settings"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"OUTLOOK","Title":"1 Reminder(s)"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"GitExtensions","Title":"WebProcessor (main) - Git Extensions"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"Code","Title":"Chat.tsx - TrainingClient.Chat - Visual Studio Code"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"GitExtensions","Title":"\u0022GroupRemover.cs\u0022 be (groupremover-protect-groups) - Git Extensions"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"devenv","Title":"ProcMon (Running) - ProcessMonitor.cs - Microsoft Visual Studio"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"devenv","Title":"TrainingClient - secrets.json - Microsoft Visual Studio"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"StorageExplorer","Title":"Microsoft Azure Storage Explorer"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"msedge","Title":"kistudysync.azurewebsites.net/admin/teacher?impersonate=jonas.beckeman%40gmail.com\u0026group=self and 1 more page - [InPrivate] - Microsoft\u200B Edge"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"explorer","Title":"ProcMon - File Explorer"}
+2025-11-23T19:48:34Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:48:40Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ProcessMonitor.cs - Microsoft Visual Studio"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"tposd","Title":""}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"explorer","Title":""}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"TextInputHost","Title":"Windows Input Experience"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"firefox","Title":"Send and ingest OTLP data | OpenTelemetry documentation \u2014 Mozilla Firefox"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"firefox","Title":"(1) Activity | Henrik Widaeus | LinkedIn \u2014 Firefox Developer Edition"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"ms-teams","Title":"Activity | Uppstartsm\u00F6te Executive Education - B-Engaged | B-engaged AB | jonas.beckeman@b-engaged.se | Microsoft Teams"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"Slack","Title":"ki-alerts (Channel) - Monsterland - Slack"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"ApplicationFrameHost","Title":"Settings"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"SystemSettings","Title":"Settings"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"OUTLOOK","Title":"1 Reminder(s)"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"GitExtensions","Title":"WebProcessor (main) - Git Extensions"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"Code","Title":"Chat.tsx - TrainingClient.Chat - Visual Studio Code"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"GitExtensions","Title":"\u0022GroupRemover.cs\u0022 be (groupremover-protect-groups) - Git Extensions"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"devenv","Title":"ProcMon (Running) - ProcessMonitor.cs - Microsoft Visual Studio"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"devenv","Title":"TrainingClient - secrets.json - Microsoft Visual Studio"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"StorageExplorer","Title":"Microsoft Azure Storage Explorer"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"msedge","Title":"kistudysync.azurewebsites.net/admin/teacher?impersonate=jonas.beckeman%40gmail.com\u0026group=self and 1 more page - [InPrivate] - Microsoft\u200B Edge"}
+2025-11-23T19:48:34Z {"Action":"Start","Application":"explorer","Title":"ProcMon - File Explorer"}
+2025-11-23T19:48:34Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:48:40Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ProcessMonitor.cs - Microsoft Visual Studio"}
+2025-11-23T19:48:41Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:48:41Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:48:54Z {"Action":"Focus","Application":"explorer","Title":""}
+2025-11-23T19:48:54Z {"Action":"Focus","Application":"explorer","Title":""}
+2025-11-23T19:48:55Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ProcessMonitor.cs - Microsoft Visual Studio"}
+2025-11-23T19:48:55Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - ProcessMonitor.cs - Microsoft Visual Studio"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"APP","Title":""}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"tposd","Title":""}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"explorer","Title":""}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"TextInputHost","Title":"Windows Input Experience"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"firefox","Title":"Send and ingest OTLP data | OpenTelemetry documentation \u2014 Mozilla Firefox"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"firefox","Title":"(1) Activity | Henrik Widaeus | LinkedIn \u2014 Firefox Developer Edition"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"ms-teams","Title":"Activity | Uppstartsm\u00F6te Executive Education - B-Engaged | B-engaged AB | jonas.beckeman@b-engaged.se | Microsoft Teams"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"Slack","Title":"ki-alerts (Channel) - Monsterland - Slack"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"ApplicationFrameHost","Title":"Settings"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"SystemSettings","Title":"Settings"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"OUTLOOK","Title":"1 Reminder(s)"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"GitExtensions","Title":"WebProcessor (main) - Git Extensions"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"Code","Title":"Chat.tsx - TrainingClient.Chat - Visual Studio Code"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"GitExtensions","Title":"\u0022GroupRemover.cs\u0022 be (groupremover-protect-groups) - Git Extensions"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"devenv","Title":"ProcMon (Running) - LogSender.cs - Microsoft Visual Studio"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"devenv","Title":"TrainingClient - secrets.json - Microsoft Visual Studio"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"StorageExplorer","Title":"Microsoft Azure Storage Explorer"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"msedge","Title":"kistudysync.azurewebsites.net/admin/teacher?impersonate=jonas.beckeman%40gmail.com\u0026group=self and 1 more page - [InPrivate] - Microsoft\u200B Edge"}
+2025-11-23T19:50:04Z {"Action":"Start","Application":"explorer","Title":"ProcMon - File Explorer"}
+2025-11-23T19:50:04Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:50:05Z {"Action":"Focus","Application":"explorer","Title":"Task Switching"}
+2025-11-23T19:50:07Z {"Action":"Focus","Application":"WindowsTerminal","Title":"Windows PowerShell"}
+2025-11-23T19:50:09Z {"Action":"Focus","Application":"WindowsTerminal","Title":"C:\\Users\\JonasBeckeman\\source\\repos\\JWMB\\ProcMon\\bin\\Debug\\net10.0\\ProcMon.exe"}
+2025-11-23T19:50:11Z {"Action":"Focus","Application":"explorer","Title":""}
+2025-11-23T19:50:12Z {"Action":"Focus","Application":"WindowsTerminal","Title":"Windows PowerShell"}
+2025-11-23T19:50:25Z {"Action":"Focus","Application":"devenv","Title":"ProcMon (Running) - LogSender.cs - Microsoft Visual Studio"}

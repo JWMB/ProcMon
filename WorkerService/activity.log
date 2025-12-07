@@ -1,0 +1,29 @@
+>2025-11-28 13:11:00: Application started. Press Ctrl+C to shut down.
+>2025-11-28 13:11:01: 2025-11-28T12:11:01Z {"Action":"Start","Application":"tposd","Title":"","Id":9544}
+>2025-11-28 13:11:01: Start processing HTTP request POST file:///
+>2025-11-28 13:11:01: Sending HTTP request POST file:///
+>2025-11-28 13:16:51: Application started. Press Ctrl+C to shut down.
+>2025-11-28 13:16:55: Start,Application:tposd,Title:,Id:9544
+>2025-11-28 13:29:40: Application started. Press Ctrl+C to shut down.
+>2025-11-28 14:24:38: Application started. Press Ctrl+C to shut down.
+>2025-11-28 14:24:38: Start,Application:tposd,Title:,Id:9544
+>2025-11-28 14:24:38: Start,Application:explorer,Title:,Id:11180
+>2025-11-28 14:24:38: Start,Application:TextInputHost,Title:Windows Input Experience,Id:18112
+>2025-11-28 14:24:38: Start,Application:firefox,Title:c# - Write to EventLog in .Net Core - Stack Overflow u2014 Mozilla Firefox,Id:18072
+>2025-11-28 14:24:38: Start,Application:ms-teams,Title:Activity | Post by Workflows | B-engaged AB | jonas.beckeman@b-engaged.se | Microsoft Teams,Id:21968
+>2025-11-28 14:24:38: Start,Application:Slack,Title:ki-alerts (Channel) - Monsterland - Slack,Id:22916
+>2025-11-28 14:24:38: Start,Application:OUTLOOK,Title:Inbox - jonas.beckeman@b-engaged.se - Outlook,Id:9316
+>2025-11-28 14:24:38: Start,Application:firefox,Title:Is Your God ACTUALLY Real?? Call Justin DZ u0026 Seth Andrews | Sunday Show 11.16.25 - YouTube u2014 Firefox Developer Edition,Id:18556
+>2025-11-28 14:24:38: Start,Application:Code,Title:openapi-integrations.json - Web - Visual Studio Code,Id:27844
+>2025-11-28 14:24:38: Start,Application:WindowsTerminal,Title:C:\Users\JonasBeckeman\source\repos\JWMB\ProcMon\WorkerService\bin\Debug\net10.0\WorkerService.exe,Id:29264
+>2025-11-28 14:24:38: Start,Application:GitExtensions,Title:be (openapi-gen) - Git Extensions,Id:30936
+>2025-11-28 14:24:38: Start,Application:Notepad,Title:*Maria Su00F6derling ska vara enda chef - Notepad,Id:6180
+>2025-11-28 14:24:38: Start,Application:devenv,Title:ProcMon (Debugging) - ProcessMonitor.cs - Microsoft Visual Studio,Id:33032
+>2025-11-28 14:24:38: Start,Application:WindowsTerminal,Title:Git Bash,Id:46444
+>2025-11-28 14:24:38: Start,Application:mmc,Title:Services,Id:32764
+>2025-11-28 14:24:38: Start,Application:mmc,Title:Event Viewer,Id:41424
+>2025-11-28 14:24:38: Focus,Application:devenv,Title:ProcMon (Debugging) - ProcessMonitor.cs - Microsoft Visual Studio,Id:33032
+>2025-11-28 14:24:39: Focus,Application:WindowsTerminal,Title:C:\Users\JonasBeckeman\source\repos\JWMB\ProcMon\WorkerService\bin\Debug\net10.0\WorkerService.exe,Id:29264
+>2025-11-28 14:24:40: Focus,Appli>2025-11-28 14:24:38: Hosting environment: Development
+>2025-11-28 14:24:38: Content root path: C:\Users\JonasBeckeman\source\repos\JWMB\ProcMon\WorkerService
+>2025-11-28 14:24:46: Application is shutting down...
