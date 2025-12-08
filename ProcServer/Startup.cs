@@ -7,10 +7,29 @@ namespace ProcServer
 		public void ConfigureServices(IServiceCollection services)
 		{
 			// Add services to the container.
-			services.AddRazorPages();
+			services.AddRazorPages(options => {
+				//options.Conventions.AuthorizePage("/Processes");
+			}).AddMvcOptions(options => options.Filters.Add<AuthorizePageHandlerFilter>());
+
 			services.AddControllers();
 
-			services.AddSingleton<ILogSink>(sp => new FileLogWriter(new FileInfo("log.log")));
+			var preexistingEntries = new List<(DateTime, Message)>();
+			var logFile = new FileInfo("log.log");
+			if (logFile.Exists)
+			{
+				//var parser = new LogItemParser();
+				preexistingEntries = Message.ParseLog(File.ReadAllText(logFile.FullName));
+					// File.ReadAllLines(logFile.FullName)
+					//.Select(parser.Parse)
+					//.Select(dict =>
+					//	System.Text.Json.JsonSerializer.Deserialize<ProcessEntry>(System.Text.Json.JsonSerializer.Serialize(dict)))
+					//.OfType<ProcessEntry>()
+					//.ToList();
+			}
+
+			services.AddSingleton<Func<IEnumerable<(DateTime, Message)>>>(sp => () => preexistingEntries);
+			services.AddSingleton<IMessageRepository, InMemoryMessageRepository>();
+			services.AddSingleton<ILogSink>(sp => new FileLogWriter(logFile));
 			services.AddSingleton<ILogItemParser, LogItemParser>();
 		}
 
@@ -33,7 +52,7 @@ namespace ProcServer
 
 			app.MapStaticAssets();
 			app.MapRazorPages()
-			   .WithStaticAssets();
+				.WithStaticAssets();
 		}
 	}
 }

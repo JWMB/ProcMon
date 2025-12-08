@@ -11,6 +11,7 @@
 		private readonly StreamWriter writer;
 
 		private DateTime lastWrite = DateTime.MinValue;
+		private SemaphoreSlim semaphore = new(1, 1);
 		public FileLogWriter(FileInfo file)
 		{
 			stream = file.OpenWrite();
@@ -25,6 +26,7 @@
 
 		public async Task Write(IEnumerable<string> messages)
 		{
+			await semaphore.WaitAsync();
 			foreach (var item in messages)
 			{
 				await writer.WriteLineAsync(item);
@@ -32,6 +34,8 @@
 			if (DateTime.UtcNow - lastWrite > TimeSpan.FromMinutes(1))
 				await writer.FlushAsync();
 			lastWrite = DateTime.UtcNow;
+
+			semaphore.Release();
 		}
 	}
 }

@@ -19,39 +19,44 @@ namespace ProcServer.Services
 			var result = new Dictionary<string, object>();
 			if (m.Success)
 			{
-				var timestamp = DateTime.Parse(m.Groups["timestamp"].Value);
-				result.Add("timestamp", timestamp);
-				var msg = m.Groups["message"].Value;
-				var parsed = System.Text.Json.JsonSerializer.Deserialize<Message>(msg);
-				if (parsed != null)
+				var timestamp = DateTime.TryParse(m.Groups["timestamp"].Value, out var v) ? v : DateTime.MinValue;
+				if (timestamp > DateTime.MinValue)
 				{
-					if (!applications.TryGetValue(parsed.Id, out var app))
+					result.Add("timestamp", timestamp);
+					var msg = m.Groups["message"].Value;
+					var parsed = System.Text.Json.JsonSerializer.Deserialize<Message>(msg);
+					if (parsed != null)
 					{
-						app = new Application { Name = parsed.Application, Start = timestamp, Title = parsed.Title, Id = parsed.Id };
-						applications.Add(parsed.Id, app);
-						Console.WriteLine($"Started {app.Name} ({app.Id})");
-					}
-					if (parsed.Action == "Focus")
-					{
-						if (LastIdFocus > -1)
+						if (!applications.TryGetValue(parsed.Id, out var app))
 						{
-							if (applications.TryGetValue(parsed.Id, out var lastApp) && lastApp.Focus.Any())
-							{
-								lastApp.Focus.Last().Duration = timestamp - lastApp.Focus.Last().Start;
-								Console.WriteLine($"{lastApp.Name} {lastApp.Focus.Last().Duration} ({lastApp.TotalDuration})");
-							}
-							else
-							{
-								Console.WriteLine($"No app found {LastIdFocus}");
-							}
+							app = new Application { Name = parsed.Application, Start = timestamp, Title = parsed.Title, Id = parsed.Id };
+							applications.Add(parsed.Id, app);
+							Console.WriteLine($"Started {app.Name} ({app.Id})");
 						}
-						app.Focus.Add(new Application.StartDuration { Start = timestamp });
-						LastIdFocus = app.Id;
+						if (parsed.Action == "Focus")
+						{
+							if (LastIdFocus > -1)
+							{
+								if (applications.TryGetValue(parsed.Id, out var lastApp) && lastApp.Focus.Any())
+								{
+									lastApp.Focus.Last().Duration = timestamp - lastApp.Focus.Last().Start;
+									Console.WriteLine($"{lastApp.Name} {lastApp.Focus.Last().Duration} ({lastApp.TotalDuration})");
+								}
+								else
+								{
+									Console.WriteLine($"No app found {LastIdFocus}");
+								}
+							}
+							app.Focus.Add(new Application.StartDuration { Start = timestamp });
+							LastIdFocus = app.Id;
+						}
+						result.Add("message", parsed);
 					}
-					result.Add("message", parsed);
+					else
+						result.Add("message", msg);
 				}
 				else
-					result.Add("message", msg);
+					Console.WriteLine($"Incorrect date: {message}");
 			}
 			else
 			{

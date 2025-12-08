@@ -1,24 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 
-public record Message(string Action, string Application, string Title, int Id = 0);
-
-public class ApplicationStats
+public record Message(string Action, string Application, string Title, int Id = 0)
 {
-	public required string Application { get; set; }
-	public List<Event> Events { get; set; } = new();
-
-	public override string ToString() => $"{Application} {Events.Count}";
-
-
-	public class Event
-	{
-		public DateTime Time { get; set; }
-		public required string Action { get; set; }
-		public string? Title { get; set; }
-
-		public override string ToString() => $"{Time:dd/MM HH:mm:ss} {Action} {Title}";
-	}
-
 	public static List<(DateTime, Message)> ParseLog(string log)
 	{
 		return log.Split('\n').Select(o => o.Trim()).Where(o => o.Any())
@@ -49,6 +32,25 @@ public class ApplicationStats
 		if (message == null)
 			return null;
 		return (timestamp, message);
+	}
+
+}
+
+public class ApplicationStats
+{
+	public required string Application { get; set; }
+	public List<Event> Events { get; set; } = new();
+
+	public override string ToString() => $"{Application} {Events.Count}";
+
+
+	public class Event
+	{
+		public DateTime Time { get; set; }
+		public required string Action { get; set; }
+		public string? Title { get; set; }
+
+		public override string ToString() => $"{Time:dd/MM HH:mm:ss} {Action} {Title}";
 	}
 
 	public static List<ApplicationStats> Create(IEnumerable<(DateTime Timestamp, Message Message)> messages)
