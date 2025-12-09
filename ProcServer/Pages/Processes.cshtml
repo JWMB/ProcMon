@@ -4,3 +4,14 @@
 }
 
 Count: @Model.Entries.Count
+
+@{
+    foreach (var (date, stats) in Model.Stats)
+    {
+        <h2>@date</h2>
+        foreach (var (am, b) in stats)
+        {
+            <div>@am</div> <div>@b</div>
+        }
+    }
+}

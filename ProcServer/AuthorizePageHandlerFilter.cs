@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using System.Reflection;
 
 namespace ProcServer
@@ -23,23 +24,30 @@ namespace ProcServer
 		// Run late in the selection pipeline
 		public int Order => 10000;
 
-		public Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next) => next();
+		public async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
+		{
+			var policy = await GP(context.HandlerMethod);
+			if (policy is not null)
+			{ }
+			await next();
+		}
 
 		public async Task OnPageHandlerSelectionAsync(PageHandlerSelectedContext context)
 		{
-			var attribute = context.HandlerMethod?.MethodInfo?.GetCustomAttribute<AuthorizePageHandlerAttribute>();
-			if (attribute is null)
-			{
-				return;
-			}
-
-			var policy = await AuthorizationPolicy.CombineAsync(policyProvider, new[] { attribute });
+			var policy = await GP(context.HandlerMethod);
 			if (policy is null)
-			{
 				return;
-			}
 
 			await AuthorizeAsync(context, policy);
+		}
+
+		private async Task<AuthorizationPolicy?> GP(HandlerMethodDescriptor? method)
+		{
+			var attribute = method?.MethodInfo?.GetCustomAttribute<AuthorizePageHandlerAttribute>();
+			if (attribute is null)
+				return null;
+			return await AuthorizationPolicy.CombineAsync(policyProvider, new[] { attribute });
+
 		}
 
 		private async Task AuthorizeAsync(ActionContext actionContext, AuthorizationPolicy policy)

@@ -50,14 +50,15 @@ public class ApplicationStats
 		public required string Action { get; set; }
 		public string? Title { get; set; }
 
-		public override string ToString() => $"{Time:dd/MM HH:mm:ss} {Action} {Title}";
+		public override string ToString() => $"{Time:dd/MM HH:mm:ss.fff} {Action} {Title}";
 	}
 
 	public static List<ApplicationStats> Create(IEnumerable<(DateTime Timestamp, Message Message)> messages)
 	{
 		var focusEvents = messages.Where(o => o.Message.Action == "Focus")
 			.Select((o, i) => new { o.Timestamp, o.Message.Application, Index = i })
-			.OrderBy(o => o.Timestamp).ToList();
+			//.OrderBy(o => o.Timestamp)
+			.ToList();
 
 		return messages.GroupBy(o => o.Message.Application).Select(byApp =>
 		{
