@@ -17,7 +17,7 @@ namespace ProcServer.Pages
         public List<(DateTime, Message)> Entries { get; set; } = new();
 		public List<(DateOnly, List<(string Application, TimeSpan Time)>)> Stats { get; set; } = new();
 
-		//[AuthorizePageHandler]
+		[AuthorizePageHandler]
 		public async Task<IActionResult> OnGetAsync()
 		{
 			var since = TimeSpan.FromDays(-20);

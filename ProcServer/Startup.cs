@@ -1,17 +1,24 @@
-﻿using ProcServer.Services;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using ProcServer.Services;
 
 namespace ProcServer
 {
     public class Startup
     {
-		public void ConfigureServices(IServiceCollection services)
+		public void ConfigureServices(IServiceCollection services, IConfiguration config)
 		{
-			// Add services to the container.
 			services.AddRazorPages(options => {
 				//options.Conventions.AuthorizePage("/Processes");
 			}).AddMvcOptions(options => options.Filters.Add<AuthorizePageHandlerFilter>());
 
+			services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+				.AddCookie();
+
 			services.AddControllers();
+
+			var hurc = new HardcodedUserRepository.Config([]);
+			config.GetSection("HardcodedUserRepository").Bind(hurc);
+			services.AddSingleton(hurc);
 
 			var preexistingEntries = new List<(DateTime, Message)>();
 			var logFile = new FileInfo("log.log");
@@ -31,6 +38,7 @@ namespace ProcServer
 			services.AddSingleton<IMessageRepository, InMemoryMessageRepository>();
 			services.AddSingleton<ILogSink>(sp => new FileLogWriter(logFile));
 			services.AddSingleton<ILogItemParser, LogItemParser>();
+			services.AddSingleton<IUserRepository, HardcodedUserRepository>();
 		}
 
 		public void Configure(WebApplication app)
@@ -46,6 +54,7 @@ namespace ProcServer
 
 			app.UseRouting();
 
+			//app.UseAuthentication();
 			app.UseAuthorization();
 
 			app.MapControllers();

@@ -46,8 +46,8 @@ namespace ProcServer
 			var attribute = method?.MethodInfo?.GetCustomAttribute<AuthorizePageHandlerAttribute>();
 			if (attribute is null)
 				return null;
-			return await AuthorizationPolicy.CombineAsync(policyProvider, new[] { attribute });
 
+			return await AuthorizationPolicy.CombineAsync(policyProvider, new[] { attribute });
 		}
 
 		private async Task AuthorizeAsync(ActionContext actionContext, AuthorizationPolicy policy)
