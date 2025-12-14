@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
@@ -38,10 +39,21 @@ public sealed class AppendingFileLoggerProvider : ILoggerProvider
 
 	public ILogger CreateLogger(string categoryName)
 	{
-		if (string.IsNullOrEmpty(_currentConfig.Filepath))
-			throw new ArgumentException($"No file path provided");
+		string filePath;
+		if (_currentConfig.CategoryToFilePath.Any())
+		{
+			filePath = _currentConfig.CategoryToFilePath.GetValueOrDefault(categoryName, "");
+			if (filePath.Any() == false)
+				return NullLogger.Instance;
+		}
+		else
+		{
+			if (string.IsNullOrEmpty(_currentConfig.Filepath))
+				throw new ArgumentException($"No file path provided");
+			filePath = _currentConfig.Filepath;
+		}
 
-		var fs = pathToFilestream.GetOrAdd(_currentConfig.Filepath, name => new FileStream(_currentConfig.Filepath, FileMode.Append, FileAccess.Write));
+		var fs = pathToFilestream.GetOrAdd(filePath, name => new FileStream(filePath, FileMode.Append, FileAccess.Write));
 		return _loggers.GetOrAdd(categoryName, name => new AppendingFileLogger(name, _currentConfig, fs));
 	}
 
@@ -53,9 +65,12 @@ public sealed class AppendingFileLoggerProvider : ILoggerProvider
 		_onChangeToken?.Dispose();
 	}
 }
+
 public class AppendingFileLoggerConfig
 {
+	public Dictionary<string, string> CategoryToFilePath { get; set; } = new();
 	public string Filepath { get; set; } = string.Empty;
+
 }
 
 public class AppendingFileLogger : IDisposable, ILogger

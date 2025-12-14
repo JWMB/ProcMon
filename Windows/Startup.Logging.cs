@@ -22,8 +22,12 @@ namespace ProcMon
 			{
 				// throw new ArgumentNullException("No log file path provided");
 				var path = new FileInfo(filepath);
-				var f = path.OpenWrite();
-				f.Dispose();
+				if (!path.Exists)
+				{
+					//using var f = path.OpenWrite();
+					//f.Close();
+					File.WriteAllText(path.FullName, "");
+				}
 				filepath = path.FullName;
 			}
 
@@ -38,7 +42,11 @@ namespace ProcMon
 					c.TimestampFormat = "yyyy-MM-dd HH:mm:ss";
 				});
 				if (!string.IsNullOrEmpty(filepath))
-					config.AddAppendingFileLogger(c => c.Filepath = filepath);
+					config.AddAppendingFileLogger(c =>
+					{
+						c.CategoryToFilePath.Add("Program", filepath);
+						//c.Filepath = filepath;
+					});
 
 				//config.AddOpenTelemetry(logging =>
 				//{

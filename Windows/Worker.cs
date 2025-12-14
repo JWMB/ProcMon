@@ -7,12 +7,14 @@ namespace Windows
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> logger;
+        private readonly ILogSender logSender;
         private ProcessMonitor processMonitor;
-        public Worker(ProcessMonitor processMonitor, ILogger<Worker> logger)
+        public Worker(ProcessMonitor processMonitor, ILogger<Worker> logger, ILogSender logSender)
         {
             this.processMonitor = processMonitor;
 
 			this.logger = logger;
+            this.logSender = logSender;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -27,9 +29,11 @@ namespace Windows
                         foreach (var message in messages)
                         {
                             var str = System.Text.Json.JsonSerializer.Serialize(message);
-                            logger.LogInformation(str, DateTimeOffset.Now);
-                        }
-                    }
+                            var timestamp = DateTimeOffset.Now;
+							logger.LogInformation(str, timestamp);
+							await logSender.Send([$"{timestamp:yyyy-MM-ddTHH:mm:ss.ff} {System.Text.Json.JsonSerializer.Serialize(message)}"]);
+						}
+					}
                     else
                     {
 						//logger.LogInformation("N/A");

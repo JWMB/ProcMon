@@ -14,7 +14,8 @@ namespace ProcServer.Services
 
 		public Dictionary<string, object> Parse(string message)
 		{
-			var rx = new Regex(@"(?<timestamp>[\w:-]+)\s*(?<message>.+)");
+			// 2025-12-14T22:03:56.01 {"Action":"Start","Application":"tposd","Title":"","Id":5820}
+			var rx = new Regex(@"(?<timestamp>[\w:\.-]+)\s*(?<message>.+)");
 			var m = rx.Match(message);
 			var result = new Dictionary<string, object>();
 			if (m.Success)
@@ -24,7 +25,18 @@ namespace ProcServer.Services
 				{
 					result.Add("timestamp", timestamp);
 					var msg = m.Groups["message"].Value;
-					var parsed = System.Text.Json.JsonSerializer.Deserialize<Message>(msg);
+					Message parsed;
+					try
+					{
+						var tmp = System.Text.Json.JsonSerializer.Deserialize<Message>(msg);
+						if (tmp == null)
+							throw new System.Text.Json.JsonException($"Null deserialized: {msg}");
+						parsed = tmp;
+					}
+					catch (System.Text.Json.JsonException jEx)
+					{
+						throw new Exception($"Failed to deserialize {jEx.Message}: {msg}");
+					}
 					if (parsed != null)
 					{
 						if (!applications.TryGetValue(parsed.Id, out var app))
