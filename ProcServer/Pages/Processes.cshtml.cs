@@ -16,6 +16,7 @@ namespace ProcServer.Pages
 
         public List<(DateTime, Message)> Entries { get; set; } = new();
 		public List<(DateOnly, List<(string Application, TimeSpan Time)>)> Stats { get; set; } = new();
+		public List<(DateOnly, TimeOnly, TimeOnly)> DayStats { get; set; } = new();
 
 		[AuthorizePageHandler]
 		public async Task<IActionResult> OnGetAsync()
@@ -28,6 +29,10 @@ namespace ProcServer.Pages
 				.OrderBy(o => o.Date)
 				.Select(o => (DateOnly.FromDateTime(o.Date), o.Stats.Select(p => (p.Application, p.Time)).ToList()))
 				.ToList();
+
+			//DayStats = Stats
+			//	.Select(o => (o.Item1, TimeOnly.FromDateTime(o.Item2.Min(p => p.)), o.Item2.Max(p => p.Time)))
+			//	.ToList();
 
 			TimeSpan GetTotalTime(IEnumerable<global::ApplicationStats.Event> events)
 			{
