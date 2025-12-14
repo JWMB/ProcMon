@@ -37,3 +37,4 @@ venv
 
 .idea/
 ProblemSource/.DS_Store
+/ProcServer/log.log
