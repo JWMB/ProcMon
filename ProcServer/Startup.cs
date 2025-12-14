@@ -7,6 +7,11 @@ namespace ProcServer
     {
 		public void ConfigureServices(IServiceCollection services, IConfiguration config)
 		{
+			services.AddLogging(conf => {
+				conf.AddConsole();
+				conf.AddDebug();
+			});
+
 			services.AddRazorPages(options => {
 				//options.Conventions.AuthorizePage("/Processes");
 			}).AddMvcOptions(options => options.Filters.Add<AuthorizePageHandlerFilter>());

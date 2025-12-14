@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.Diagnostics;
 
 namespace ProcServer.Services
 {
@@ -15,29 +16,57 @@ namespace ProcServer.Services
 	public class HardcodedUserRepository : IUserRepository
     {
         private readonly Config config;
+        private readonly ILogger<HardcodedUserRepository> log;
 
         public record Config(List<User> Users);
 
-        public HardcodedUserRepository(Config config)
+        public HardcodedUserRepository(Config config, ILogger<HardcodedUserRepository> log)
         {
             this.config = config;
+            this.log = log;
         }
 
         public async Task<User?> GetByUsernameAndPassword(string username, string password)
         {
-            var hasher = new PasswordHasher<User>();
+			//Trace.TraceError($"TFound");
+			//log.LogError($"LE");
+			//log.LogInformation($"LI");
+			//Console.WriteLine($"CFound");
+			//Debug.WriteLine($"Found");
+
+			if (string.IsNullOrEmpty(password))
+            {
+				//log.LogInformation($"No pwd provided");
+				log.LogError($"No pwd provided");
+				return null;
+			}
 
             var user = config.Users.SingleOrDefault(o => o.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
             if (user == null)
-                return null;
+            {
+				log.LogError($"No usr {username} ({config.Users.Count})");
+				return null;
+			}
 
-            if (hasher.VerifyHashedPassword(user, user.Password, password) != PasswordVerificationResult.Failed)
-                return user;
-            // allow clear text
-            if (user.Password == password)
+			//log.LogError($"Found {user.Username}");
+
+            try
+            {
+				var hasher = new PasswordHasher<User>();
+				if (hasher.VerifyHashedPassword(user, user.Password, password) != PasswordVerificationResult.Failed)
+					return user;
+			}
+            catch (FormatException fEx) when (fEx.Message.Contains("non-base 64"))
+            {
+				log.LogError($"Pwd not hashed for {user.Username}");
+			}
+
+			// allow clear text for now
+			if (user.Password == password)
                 return user;
 
-            return null;
+			log.LogError($"Incorrect pwd for {user.Username}");
+			return null;
         }
     }
 }
