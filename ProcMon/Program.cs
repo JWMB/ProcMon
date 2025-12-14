@@ -11,9 +11,9 @@ using Windows;
 
 // sc.exe create PrcMon binPath= "C:\Program Files\Prcmon\ProcMon.exe"
 
-var file = @"C:\Users\JonasBeckeman\OneDrive\Dokument\act.log";
+//var file = @"C:\Users\JonasBeckeman\OneDrive\Dokument\act.log";
 //file = @"C:\Users\JonasBeckeman\source\repos\JWMB\ProcMon\ProcMon\bin\Release\net10.0\win-x64\publish\activity.log";
-var aaa = ApplicationStats.Create(ApplicationStats.ParseLog(File.ReadAllText(file)));
+//var aaa = ApplicationStats.Create(ApplicationStats.ParseLog(File.ReadAllText(file)));
 //var tmp = System.Text.Json.JsonSerializer.Serialize(aaa, new System.Text.Json.JsonSerializerOptions() { WriteIndented = true });
 
 HostApplicationBuilder? hostBuilder = null;
