@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Common;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using ProcServer.Services;
 
 namespace ProcServer
@@ -30,7 +31,11 @@ namespace ProcServer
 			if (logFile.Exists)
 			{
 				//var parser = new LogItemParser();
-				preexistingEntries = Message.ParseLog(File.ReadAllText(logFile.FullName));
+				try
+				{
+					preexistingEntries = Message.ParseLog(File.ReadAllText(logFile.FullName));
+				}
+				catch { }
 					// File.ReadAllLines(logFile.FullName)
 					//.Select(parser.Parse)
 					//.Select(dict =>

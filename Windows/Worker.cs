@@ -30,7 +30,7 @@ namespace Windows
                         {
                             var str = System.Text.Json.JsonSerializer.Serialize(message);
                             var timestamp = DateTimeOffset.Now;
-							logger.LogInformation(str, timestamp);
+							logger.LogInformation(str);
 							await logSender.Send([$"{timestamp:yyyy-MM-ddTHH:mm:ss.ff} {System.Text.Json.JsonSerializer.Serialize(message)}"]);
 						}
 					}

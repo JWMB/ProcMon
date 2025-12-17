@@ -3,15 +3,67 @@
 @{
 }
 
+<script type="text/javascript">
+</script>
+
 Count: @Model.Entries.Count
 
+<div style="display: grid;">
+    <div>
 @{
     foreach (var (date, stats) in Model.Stats)
     {
         <h2>@date</h2>
-        foreach (var (am, b) in stats)
-        {
-            <div>@am</div> <div>@b</div>
-        }
+        <table>
+            <thead>
+                <tr>
+                    <th>Application</th>
+                    <th>Total time</th>
+                </tr>
+            </thead>
+            @foreach (var (app, time) in stats)
+            {
+                <tr>
+                    <td><a href="?app=@app&date=@date">@app</a></td>
+                    <td>@time</td>
+                </tr>
+            }
+        </table>
     }
 }
+    </div>
+    
+    <div>
+
+    <div>CC: @Model.AppDetails.Count</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Action</th>
+                <th>Title</th>
+            </tr>
+        </thead>
+        @foreach (var (datetime, info) in Model.AppDetails)
+        {
+            <tr>
+                <td>@datetime</td>
+                <td>@info.Action</td>
+                <td>@info.Title</td>
+            </tr>
+        }
+    </table>
+}
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    // <td><a href="javascript:clickApplication('app')">app</a></td>
+
+    window.clickApplication = (app) => {
+        fetch(`?app=${app}`, { method: "GET" }).then(r => {
+            console.log("r", r);
+        });
+    }
+</script>

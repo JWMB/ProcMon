@@ -1,3 +1,4 @@
+using Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ProcServer.Services;
@@ -17,15 +18,29 @@ namespace ProcServer.Pages
         public List<(DateTime, Message)> Entries { get; set; } = new();
 		public List<(DateOnly, List<(string Application, TimeSpan Time)>)> Stats { get; set; } = new();
 		public List<(DateOnly, TimeOnly, TimeOnly)> DayStats { get; set; } = new();
+		public List<(DateTime, Message)> AppDetails { get; set; } = new();
 
 		[AuthorizePageHandler]
 		public async Task<IActionResult> OnGetAsync()
 		{
-			var since = TimeSpan.FromDays(-20);
+			var since = TimeSpan.FromDays(-30);
 			Entries = await repository.Get(DateTime.UtcNow + since);
 
+			var detailsForApp = Request.Query["app"].FirstOrDefault();
+			if (detailsForApp != null)
+			{
+				var date = DateOnly.TryParse(Request.Query["date"].FirstOrDefault() ?? "", out var v) ? (DateOnly?)v : null;
+				AppDetails = Entries
+					.Where(o => o.Item2.Application == detailsForApp)
+					.Where(o => date.HasValue ? DateOnly.FromDateTime(o.Item1) == date : true)
+					.OrderBy(o => o.Item1)
+					.ToList();
+			}
+			var tsRounding = TimeSpanExtensions.TimeSpanPart.Minutes;
+			
 			Stats = Entries.GroupBy(o => o.Item1.Date)
-				.Select(o => new { Date = o.Key, Stats = ApplicationStats.Create(o).Select(p => new { p.Application, Time = GetTotalTime(p.Events) }) })
+				.Select(o => new { Date = o.Key, Stats = ApplicationStats.Create(o)
+					.Select(p => new { p.Application, Time = GetTotalTime(p.Events).Modulo(TimeSpanExtensions.CreateFullModuloUntil(tsRounding)) }) })
 				.OrderBy(o => o.Date)
 				.Select(o => (DateOnly.FromDateTime(o.Date), o.Stats.Select(p => (p.Application, p.Time)).ToList()))
 				.ToList();
