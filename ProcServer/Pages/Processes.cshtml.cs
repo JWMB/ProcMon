@@ -41,7 +41,7 @@ namespace ProcServer.Pages
 			Stats = Entries.GroupBy(o => o.Item1.Date)
 				.Select(o => new { Date = o.Key, Stats = ApplicationStats.Create(o)
 					.Select(p => new { p.Application, Time = GetTotalTime(p.Events).Modulo(TimeSpanExtensions.CreateFullModuloUntil(tsRounding)) }) })
-				.OrderBy(o => o.Date)
+				.OrderByDescending(o => o.Date)
 				.Select(o => (DateOnly.FromDateTime(o.Date), o.Stats.Select(p => (p.Application, p.Time)).ToList()))
 				.ToList();
 

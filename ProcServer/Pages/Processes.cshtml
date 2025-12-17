@@ -8,7 +8,7 @@
 
 Count: @Model.Entries.Count
 
-<div style="display: grid;">
+<div style="display: grid; grid-template-columns: 40% 60%;">
     <div>
 @{
     foreach (var (date, stats) in Model.Stats)
@@ -25,7 +25,7 @@ Count: @Model.Entries.Count
             {
                 <tr>
                     <td><a href="?app=@app&date=@date">@app</a></td>
-                    <td>@time</td>
+                            <td>@time.ToString(@"hh\:mm", System.Globalization.CultureInfo.InvariantCulture)</td>
                 </tr>
             }
         </table>
