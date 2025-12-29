@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
 
 namespace ProcMon
 {
@@ -10,25 +11,27 @@ namespace ProcMon
 
     public class LogSender : ILogSender
 	{
-		public record Config(Uri Endpoint, int MinimumIntervalSeconds);
+		public record Config(Uri Endpoint, int MinimumIntervalSeconds, string? Sender = null);
 		
         private readonly Config config;
         private readonly Func<HttpClient> clientFactory; // IHttpClientFactory
-
-		private List<string> unsent = new();
+        private readonly ILogger<LogSender> log;
+        private List<string> unsent = new();
 		private DateTime lastSent = DateTime.MinValue;
 		private TimeSpan minimumInterval;
 		private TimeSpan timeout;
 		private SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
-		private int numFailuresInARow = 0;
+		private int numConsecutiveFailures = 0;
+		private readonly int disableAfterNumConsecutiveFailures = 3;
 		private bool enabled = true;
 
-		public LogSender(Config config, Func<HttpClient> clientFactory) //IHttpClientFactory 
+		public LogSender(Config config, Func<HttpClient> clientFactory, ILogger<LogSender> log) //IHttpClientFactory 
 		{
             this.config = config;
             this.clientFactory = clientFactory;
-			minimumInterval = TimeSpan.FromSeconds(config.MinimumIntervalSeconds);
+            this.log = log;
+            minimumInterval = TimeSpan.FromSeconds(config.MinimumIntervalSeconds);
 			timeout = TimeSpan.FromSeconds(2);
 		}
 
@@ -47,22 +50,28 @@ namespace ProcMon
 					await SendInternal(unsent);
 					lastSent = now;
 					unsent.Clear();
-					numFailuresInARow = 0;
+					numConsecutiveFailures = 0;
 				}
 				catch (TaskCanceledException tcEx)
 				{
-					numFailuresInARow++;
-					if (numFailuresInARow > 3)
+					numConsecutiveFailures++;
+					if (numConsecutiveFailures >= disableAfterNumConsecutiveFailures)
+					{
 						enabled = false;
+						if (numConsecutiveFailures == disableAfterNumConsecutiveFailures)
+							log.LogError($"Disabled after {numConsecutiveFailures} timeouts");
+					}
 				}
 				catch (NotSupportedException nsEx)
 				{
+					log.LogError(nsEx, $"{messages.Count()} messages");
 					Console.WriteLine(nsEx);
 					enabled = false;
 				}
 				catch (Exception ex)
 				{
-					numFailuresInARow++;
+					log.LogError(ex, $"{numConsecutiveFailures}");
+					numConsecutiveFailures++;
 					if (ex.Message.Contains("InternalServerError"))
 					{
 						enabled = false;
@@ -81,10 +90,14 @@ namespace ProcMon
 			messages = messages.Select(o => o.Trim()).Where(o => o.Any());
 			if (!messages.Any())
 				return;
-			var client = clientFactory(); //.CreateClient();
+			var client = clientFactory();
 			var request = new HttpRequestMessage(HttpMethod.Post, config.Endpoint);
 
-			var body = new { Messages = messages };
+			var body = new
+			{
+				Messages = messages,
+				config.Sender
+			};
 			request.Content = JsonContent.Create(body);
 
 			var src = new CancellationTokenSource();

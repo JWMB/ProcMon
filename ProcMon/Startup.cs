@@ -19,6 +19,7 @@ namespace ProcMon
 			services.AddSingleton<Func<HttpClient>>(sp => () => sp.GetRequiredService<IHttpClientFactory>().CreateClient());
 
 			services.AddSingleton<IDirectiveListener, DirectiveListener>();
+			services.AddSingleton<ProcessMonitor>();
 
 			logging.AddServices(services, configuration);
 		}

@@ -31,10 +31,6 @@ namespace ProcMon
 				filepath = path.FullName;
 			}
 
-			services.AddSingleton<ProcessMonitor>();
-
-			var otelSection = configuration.GetSection("OTel");
-			var otelSettings = new { Endpoint = otelSection["OTEL_EXPORTER_OTLP_ENDPOINT"]!, Headers = otelSection["OTEL_EXPORTER_OTLP_HEADERS"]! };
 			services.AddLogging(config =>
 			{
 				config.AddSystemdConsole(c =>
@@ -44,10 +40,12 @@ namespace ProcMon
 				if (!string.IsNullOrEmpty(filepath))
 					config.AddAppendingFileLogger(c =>
 					{
-						c.CategoryToFilePath.Add("Program", filepath);
+						c.CategoryToFilePath.Add("^(?!Microsoft|System).*$", filepath);
 						//c.Filepath = filepath;
 					});
 
+				//var otelSection = configuration.GetSection("OTel");
+				//var otelSettings = new { Endpoint = otelSection["OTEL_EXPORTER_OTLP_ENDPOINT"]!, Headers = otelSection["OTEL_EXPORTER_OTLP_HEADERS"]! };
 				//config.AddOpenTelemetry(logging =>
 				//{
 				//	logging.AddOtlpExporter(c =>
@@ -85,18 +83,13 @@ namespace ProcMon
 
 		public void ConfigureApp(IServiceProvider serviceProvider)
 		{
+			//var loggerProviders = serviceProvider.GetServices<ILoggerProvider>();
 		}
 	}
 
 	//public class TestProcessor : OpenTelemetry.BaseProcessor<LogRecord>
 	//{
- //       public override void OnStart(LogRecord data)
- //       {
- //           base.OnStart(data);
- //       }
- //       public override void OnEnd(LogRecord data)
- //       {
- //           base.OnEnd(data);
- //       }
+ //       public override void OnStart(LogRecord data) => base.OnStart(data);
+ //       public override void OnEnd(LogRecord data) => base.OnEnd(data);
 	//}
 }

@@ -26,14 +26,14 @@ namespace ProcServer
 			config.GetSection("HardcodedUserRepository").Bind(hurc);
 			services.AddSingleton(hurc);
 
-			var preexistingEntries = new List<(DateTime, Message)>();
+			var preexistingEntries = new List<Entry>();
 			var logFile = new FileInfo("log.log");
 			if (logFile.Exists)
 			{
 				//var parser = new LogItemParser();
 				try
 				{
-					preexistingEntries = Message.ParseLog(File.ReadAllText(logFile.FullName));
+					preexistingEntries = Message.ParseLog(File.ReadAllText(logFile.FullName)).Select(o => new Entry(o.Item1, o.Item2, null)).ToList();
 				}
 				catch { }
 					// File.ReadAllLines(logFile.FullName)
@@ -44,7 +44,7 @@ namespace ProcServer
 					//.ToList();
 			}
 
-			services.AddSingleton<Func<IEnumerable<(DateTime, Message)>>>(sp => () => preexistingEntries);
+			services.AddSingleton<Func<IEnumerable<Entry>>>(sp => () => preexistingEntries);
 			services.AddSingleton<IMessageRepository, InMemoryMessageRepository>();
 			services.AddSingleton<ILogSink>(sp => new FileLogWriter(logFile));
 			services.AddSingleton<ILogItemParser, LogItemParser>();

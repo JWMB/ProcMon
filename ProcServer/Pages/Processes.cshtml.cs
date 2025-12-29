@@ -15,34 +15,41 @@ namespace ProcServer.Pages
             this.repository = repository;
         }
 
-        public List<(DateTime, Message)> Entries { get; set; } = new();
-		public List<(DateOnly, List<(string Application, TimeSpan Time)>)> Stats { get; set; } = new();
-		public List<(DateOnly, TimeOnly, TimeOnly)> DayStats { get; set; } = new();
-		public List<(DateTime, Message)> AppDetails { get; set; } = new();
+        public List<Entry> Entries { get; set; } = new();
+		public List<string> Senders { get; set; } = new();
+		public List<(DateTime, List<(string Application, TimeSpan Time)>)> Stats { get; set; } = new();
+		//public List<(DateOnly, TimeOnly, TimeOnly)> DayStats { get; set; } = new();
+		public List<Entry> AppDetails { get; set; } = new();
 
 		[AuthorizePageHandler]
 		public async Task<IActionResult> OnGetAsync()
 		{
 			var since = TimeSpan.FromDays(-30);
-			Entries = await repository.Get(DateTime.UtcNow + since);
+			var sender = Request.Query["sender"].FirstOrDefault();
+			if (string.IsNullOrWhiteSpace(sender))
+				sender = null;
+
+			Entries = await repository.Get(DateTime.UtcNow + since, sender);
+
+			var senders = Entries.Select(o => o.Sender).Distinct().ToList();
 
 			var detailsForApp = Request.Query["app"].FirstOrDefault();
 			if (detailsForApp != null)
 			{
 				var date = DateOnly.TryParse(Request.Query["date"].FirstOrDefault() ?? "", out var v) ? (DateOnly?)v : null;
 				AppDetails = Entries
-					.Where(o => o.Item2.Application == detailsForApp)
-					.Where(o => date.HasValue ? DateOnly.FromDateTime(o.Item1) == date : true)
-					.OrderBy(o => o.Item1)
+					.Where(o => o.Message.Application == detailsForApp)
+					.Where(o => date.HasValue ? DateOnly.FromDateTime(o.Time) == date : true)
+					.OrderBy(o => o.Time)
 					.ToList();
 			}
 			var tsRounding = TimeSpanExtensions.TimeSpanPart.Minutes;
 			
-			Stats = Entries.GroupBy(o => o.Item1.Date)
-				.Select(o => new { Date = o.Key, Stats = ApplicationStats.Create(o)
+			Stats = Entries.GroupBy(o => o.Time.Date)
+				.Select(o => new { Date = o.Key, Start = o.Min(o => o.Time), Stats = ApplicationStats.Create(o.Select(p => (p.Time, p.Message)))
 					.Select(p => new { p.Application, Time = GetTotalTime(p.Events).Modulo(TimeSpanExtensions.CreateFullModuloUntil(tsRounding)) }) })
 				.OrderByDescending(o => o.Date)
-				.Select(o => (DateOnly.FromDateTime(o.Date), o.Stats.Select(p => (p.Application, p.Time)).ToList()))
+				.Select(o => (o.Start, o.Stats.Select(p => (p.Application, p.Time)).ToList()))
 				.ToList();
 
 			//DayStats = Stats

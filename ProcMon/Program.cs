@@ -61,15 +61,32 @@ var cancelSource = new CancellationTokenSource();
 AppDomain.CurrentDomain.ProcessExit += (sender, e) => ProcessExit("ProcessExit");
 Console.CancelKeyPress += (sender, e) => ProcessExit("Cancel");
 
+Task mainTask;
 if (host == null)
 {
 	var monitor = services.GetRequiredService<ProcessMonitor>();
-	await monitor.Run(cancelSource.Token);
+	mainTask = monitor.Run(cancelSource.Token);
 }
 else
 {
-	host.Run();
+	mainTask = host.RunAsync(cancelSource.Token);
 }
+
+//args = ["a"];
+if (args.Any())
+{
+	if (args.First() == "a")
+	{
+		//var monitor = services.GetRequiredService<ProcessMonitor>();
+		var sender = services.GetRequiredService<ILogSender>();
+
+		var msg = $"{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.ff} {System.Text.Json.JsonSerializer.Serialize(new Message("Start", "Test", "MyTest"))}";
+		await sender.Send([msg]);
+	}
+}
+
+
+await mainTask;
 
 Console.WriteLine("Final exit");
 

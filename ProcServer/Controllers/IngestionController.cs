@@ -34,7 +34,7 @@ namespace ProcServer.Controllers
             {
 				var dict = logItemParser.Parse(msg);
 				var tmp = System.Text.Json.JsonSerializer.Deserialize<(DateTime, Message)>(System.Text.Json.JsonSerializer.Serialize(dict));
-                await messageRepository.Add(tmp.Item1, tmp.Item2);
+                await messageRepository.Add(new Entry(tmp.Item1, tmp.Item2, dto.Sender));
 				//Console.WriteLine($"parsed: {string.Join(",", dict.Select(o => $"{o.Key}={o.Value}"))}");
 			}
 			//Console.WriteLine($"Got {msgs.Count} msgs: {string.Join("\n", msgs.Select(o => o.Substring(0, Math.Min(50, o.Length - 1))))}");
@@ -42,6 +42,6 @@ namespace ProcServer.Controllers
 			return Ok(msgs.Count);
         }
 
-		public record PostDto(string[] Messages);
+		public record PostDto(string[] Messages, string? Sender = null);
     }
 }

@@ -2,29 +2,31 @@
 {
     public interface IMessageRepository
     {
-        Task Add(DateTime time, Message message);
-        Task<List<(DateTime, Message)>> Get(DateTime since);
+        Task Add(Entry entry);
+        Task<List<Entry>> Get(DateTime since, string? sender = null);
     }
+
+    public record Entry(DateTime Time, Message Message, string? Sender);
 
     public class InMemoryMessageRepository : IMessageRepository
 	{
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
-        private List<(DateTime, Message)> entries = new();
-		public InMemoryMessageRepository(Func<IEnumerable<(DateTime, Message)>> init)
+        private List<Entry> entries = new();
+		public InMemoryMessageRepository(Func<IEnumerable<Entry>> init)
         {
 			entries = init().ToList();
 		}
 
-        public async Task Add(DateTime time, Message message)
+        public async Task Add(Entry entry)
         {
 			await semaphore.WaitAsync();
-			entries.Add((time, message));
+			entries.Add(entry);
             semaphore.Release();
 		}
 
-        public Task<List<(DateTime, Message)>> Get(DateTime since)
+        public Task<List<Entry>> Get(DateTime since, string? sender = null)
 		{
-			return Task.FromResult(entries.Where(o => o.Item1 >= since).ToList());
+			return Task.FromResult(entries.Where(o => o.Time >= since && (sender != null ? sender == o.Sender : true)).ToList());
 		}
     }
 }

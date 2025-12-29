@@ -13,7 +13,7 @@ Count: @Model.Entries.Count
 @{
     foreach (var (date, stats) in Model.Stats)
     {
-        <h2>@date</h2>
+        <h2>@date.ToString("yyyy-MM-dd HH:mm")</h2>
         <table>
             <thead>
                 <tr>
@@ -44,17 +44,15 @@ Count: @Model.Entries.Count
                 <th>Title</th>
             </tr>
         </thead>
-        @foreach (var (datetime, info) in Model.AppDetails)
+        @foreach (var entry in Model.AppDetails)
         {
             <tr>
-                <td>@datetime</td>
-                <td>@info.Action</td>
-                <td>@info.Title</td>
+                <td>@entry.Time.ToString("HH:mm:ss")</td>
+                <td>@entry.Message.Action</td>
+                    <td>@entry.Message.Title</td>
             </tr>
         }
     </table>
-}
-
     </div>
 </div>
 
