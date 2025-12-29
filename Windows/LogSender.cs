@@ -104,9 +104,9 @@ namespace ProcMon
 			src.CancelAfter(timeout);
 			var res = await client.SendAsync(request, src.Token);
 
-			var content = await res.Content.ReadAsStringAsync();
 			if (!res.IsSuccessStatusCode)
 			{
+				var content = await res.Content.ReadAsStringAsync();
 				throw new Exception($"{res.StatusCode}: {content}");
 			}
 		}

@@ -1,5 +1,4 @@
-﻿using Common;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using ProcServer.Services;
 
 namespace ProcServer
@@ -30,23 +29,17 @@ namespace ProcServer
 			var logFile = new FileInfo("log.log");
 			if (logFile.Exists)
 			{
-				//var parser = new LogItemParser();
-				try
-				{
-					preexistingEntries = Message.ParseLog(File.ReadAllText(logFile.FullName)).Select(o => new Entry(o.Item1, o.Item2, null)).ToList();
-				}
-				catch { }
-					// File.ReadAllLines(logFile.FullName)
-					//.Select(parser.Parse)
-					//.Select(dict =>
-					//	System.Text.Json.JsonSerializer.Deserialize<ProcessEntry>(System.Text.Json.JsonSerializer.Serialize(dict)))
-					//.OfType<ProcessEntry>()
-					//.ToList();
+				preexistingEntries = FileMessageRepository.GetEntriesFromFile(logFile).Result.ToList();
 			}
 
-			services.AddSingleton<Func<IEnumerable<Entry>>>(sp => () => preexistingEntries);
-			services.AddSingleton<IMessageRepository, InMemoryMessageRepository>();
-			services.AddSingleton<ILogSink>(sp => new FileLogWriter(logFile));
+			//services.AddSingleton<Func<IEnumerable<Entry>>>(sp => () => preexistingEntries);
+			//services.AddSingleton<IMessageRepository, InMemoryMessageRepository>();
+
+			var fileMsgRepo = new FileMessageRepository(new FileMessageRepository.Config(logFile));
+			var inMemMsgRepo = new InMemoryMessageRepository(() => preexistingEntries);
+			services.AddSingleton<IMessageRepository>(sp => new CompositeMessageRepository([fileMsgRepo, inMemMsgRepo], inMemMsgRepo));
+
+			//services.AddSingleton<ILogSink>(sp => new FileLogWriter(logFile));
 			services.AddSingleton<ILogItemParser, LogItemParser>();
 			services.AddSingleton<IUserRepository, HardcodedUserRepository>();
 		}

@@ -7,13 +7,13 @@ namespace ProcServer.Controllers
 	[Route("api/[controller]")] //[action]
 	public class IngestionController : ControllerBase
     {
-        private readonly ILogSink logWriter;
+        private readonly ILogSink? logSink;
         private readonly ILogItemParser logItemParser;
         private readonly IMessageRepository messageRepository;
 
-        public IngestionController(ILogSink logWriter, ILogItemParser logItemParser, IMessageRepository messageRepository)
+        public IngestionController(ILogItemParser logItemParser, IMessageRepository messageRepository, ILogSink? logSink = null)
         {
-            this.logWriter = logWriter;
+            this.logSink = logSink;
             this.logItemParser = logItemParser;
             this.messageRepository = messageRepository;
         }
@@ -33,12 +33,23 @@ namespace ProcServer.Controllers
             foreach (var msg in msgs)
             {
 				var dict = logItemParser.Parse(msg);
-				var tmp = System.Text.Json.JsonSerializer.Deserialize<(DateTime, Message)>(System.Text.Json.JsonSerializer.Serialize(dict));
-                await messageRepository.Add(new Entry(tmp.Item1, tmp.Item2, dto.Sender));
+
+                var m = dict.Values.OfType<Message>().FirstOrDefault();
+                if (m == null)
+                    continue;
+
+                var time = dict.Values.OfType<DateTime>().FirstOrDefault();
+				if (time == default)
+					continue;
+
+				//var tmp = System.Text.Json.JsonSerializer.Deserialize<(DateTime, Message)>(System.Text.Json.JsonSerializer.Serialize(dict));
+				await messageRepository.Add(new Entry(time, m, dto.Sender));
 				//Console.WriteLine($"parsed: {string.Join(",", dict.Select(o => $"{o.Key}={o.Value}"))}");
 			}
 			//Console.WriteLine($"Got {msgs.Count} msgs: {string.Join("\n", msgs.Select(o => o.Substring(0, Math.Min(50, o.Length - 1))))}");
-			await logWriter.Write(msgs);
+            if (logSink != null)
+    			await logSink.Write(msgs);
+
 			return Ok(msgs.Count);
         }
 
