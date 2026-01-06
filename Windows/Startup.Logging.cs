@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Common;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 //using OpenTelemetry.Logs;
@@ -21,7 +22,7 @@ namespace ProcMon
 			if (!string.IsNullOrEmpty(filepath))
 			{
 				// throw new ArgumentNullException("No log file path provided");
-				var path = new FileInfo(filepath);
+				var path = new FileInfo(filepath).Resolve();
 				if (!path.Exists)
 				{
 					//using var f = path.OpenWrite();

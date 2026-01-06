@@ -1,4 +1,6 @@
-﻿namespace Common
+﻿using System;
+
+namespace Common
 {
     public static class TimeSpanExtensions
     {
@@ -74,4 +76,58 @@
 			return modified;
         }
     }
+
+	public static class FileSystemInfoExtensions
+	{
+
+		public static string? ResolveSpecialFolder(string folder, char? surrounding = '%')
+		{
+			if (surrounding.HasValue)
+			{
+				if (folder.StartsWith(surrounding.Value) && folder.EndsWith(surrounding.Value))
+					folder = folder[1..^1];
+				else
+					return null;
+			}
+
+			return folder.ToLower() switch
+			{
+				"localappdata" => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+				"appdata" or "roaming" => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+				"temp" => Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp"),
+				_ => throw new NotImplementedException()
+			};
+		}
+
+		public static T Resolve<T>(this T fsi) where T : FileSystemInfo
+		{
+			var separator = Path.DirectorySeparatorChar;
+			if (separator == '\\')
+			{
+				if (fsi.FullName.Split('/').Length > fsi.FullName.Split('\\').Length)
+					separator = '/';
+			}
+
+			var split = fsi.FullName.Split(separator);
+
+			var lastWithSpecialFolder = split.Index().LastOrDefault(o => ResolveSpecialFolder(o.Item) != null);
+			if (lastWithSpecialFolder.Item != default)
+			{
+				split = split[lastWithSpecialFolder.Index..];
+			}
+
+			var segments = split.Select(o => ResolveSpecialFolder(o) ?? o);
+
+			var resolved = Path.GetFullPath(string.Join(Path.DirectorySeparatorChar, segments));
+
+			FileSystemInfo result = fsi switch
+			{
+				FileInfo fi => new FileInfo(resolved),
+				DirectoryInfo di => new DirectoryInfo(resolved),
+				_ => throw new NotSupportedException()
+			};
+
+			return (T)result;
+		}
+	}
 }
