@@ -27,9 +27,17 @@ namespace ProcMon
 				{
 					//using var f = path.OpenWrite();
 					//f.Close();
-					File.WriteAllText(path.FullName, "");
+					try
+					{
+						File.WriteAllText(path.FullName, "");
+						filepath = path.FullName;
+					}
+					catch (Exception ex)
+					{
+						Console.Error.WriteLine($"{ex.GetType().Name}: {ex.Message} (path.FullName)");
+						filepath = null;
+					}
 				}
-				filepath = path.FullName;
 			}
 
 			services.AddLogging(config =>
