@@ -15,6 +15,8 @@ namespace ProcMon
 		{
 			var c = new LogSender.Config(new("file://"), 0);
 			configuration.GetSection("LogSender").Bind(c);
+			if (string.IsNullOrEmpty(c.Sender))
+				c = c with { Sender = Environment.UserName };
 			services.AddSingleton(c);
 			services.AddSingleton<ILogSender, LogSender>();
 
@@ -23,6 +25,7 @@ namespace ProcMon
 			{
 				// throw new ArgumentNullException("No log file path provided");
 				var path = new FileInfo(filepath).Resolve();
+				filepath = path.FullName;
 				if (!path.Exists)
 				{
 					//using var f = path.OpenWrite();
@@ -30,7 +33,6 @@ namespace ProcMon
 					try
 					{
 						File.WriteAllText(path.FullName, "");
-						filepath = path.FullName;
 					}
 					catch (Exception ex)
 					{

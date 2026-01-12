@@ -6,8 +6,9 @@ using Microsoft.Extensions.Logging;
 using ProcMon;
 using Windows;
 
-// dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false
+// // dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false
 // dotnet publish ProcMon.csproj -r win-x64 -p:PublishSingleFile=true --self-contained false
+// 
 
 // sc.exe create PrcMon binPath= "C:\Program Files\Prcmon\ProcMon.exe"
 
@@ -85,6 +86,11 @@ if (args.Any())
 	}
 }
 
+await Task.Run(async () =>
+{
+	await Task.Delay(100);
+	Hider.HideMainWindow();
+});
 
 await mainTask;
 

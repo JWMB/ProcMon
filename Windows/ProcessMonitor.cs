@@ -29,6 +29,7 @@ namespace ProcMon
 			this.metrics = metrics;
 			this.logSender = logSender;
 
+			//var userinfo = $"{Process.GetCurrentProcess().MachineName} {Environment.UserName}";
 			//screenshotFolder = new DirectoryInfo(@"C:\Users\JonasBeckeman\Desktop\Screenshots");
 		}
 
@@ -136,6 +137,28 @@ namespace ProcMon
 			logSender.Send([$"{timestamp} {System.Text.Json.JsonSerializer.Serialize(message)}"]);
 			//message = message with { Title = string.Empty };
 			log.Log(LogLevel.Information, $"{System.Text.Json.JsonSerializer.Serialize(message)}");
+		}
+	}
+
+	public class Hider
+	{
+		[DllImport("user32.dll")]
+		static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+		public static void HideMainWindow()
+		{
+			var current = Process.GetCurrentProcess();
+			
+			var h = current.MainWindowHandle;
+			if (h == 0)
+			{
+				Console.WriteLine($"problemo!!! {current.Handle}: {current.ProcessName} {current.MainWindowTitle}");
+				var result = ShowWindow(current.Handle, 0);
+			}
+			else
+			{
+				var result = ShowWindow(h, 0);
+			}
 		}
 	}
 }
