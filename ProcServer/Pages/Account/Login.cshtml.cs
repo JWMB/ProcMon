@@ -47,8 +47,8 @@ namespace ProcServer.Pages.Account
 
 				if (user != null)
 				{
-					var claims = new List<Claim> { new Claim(ClaimTypes.Name, Username) };
-					var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+					//var claims = new List<Claim> { new Claim(ClaimTypes.Name, Username) };
+					var identity = userRepository.CreateIdentity(user); // new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 					await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
 					return Redirect(returnUrl);

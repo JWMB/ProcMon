@@ -1,16 +1,35 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System.Diagnostics;
+using System.Security.Claims;
 
 namespace ProcServer.Services
 {
     public interface IUserRepository
     {
         Task<User?> GetByUsernameAndPassword(string username, string password);
+
+        public ClaimsIdentity CreateIdentity(User user)
+        {
+			var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.Role.ToString())
+            };
+			return new ClaimsIdentity(claims, Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+		}
+	}
+
+    public enum UserRole
+    {
+        Anonymous,
+        User,
+        Admin
     }
+
     public class User
     {
         public required string Username { get; set; }
 		public required string Password { get; set; }
+        public UserRole Role { get; set; } = UserRole.Anonymous;
 	}
 
 	public class HardcodedUserRepository : IUserRepository

@@ -33,6 +33,8 @@ namespace ProcServer.Pages
 
 			var senders = Entries.Select(o => o.Sender).Distinct().ToList();
 
+			var sessions = Entries.AsSessions(TimeSpan.FromHours(1));
+
 			var detailsForApp = Request.Query["app"].FirstOrDefault();
 			if (detailsForApp != null)
 			{

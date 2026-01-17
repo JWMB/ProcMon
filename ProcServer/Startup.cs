@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Common;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using ProcServer.Services;
 
 namespace ProcServer

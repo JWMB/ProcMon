@@ -130,4 +130,47 @@ namespace Common
 			return (T)result;
 		}
 	}
+
+	public static class IEnumerableExtensions
+	{
+		public static IEnumerable<List<T>> SplitBy<T>(this IEnumerable<T> items, Func<T, bool> split)
+		{
+			var list = new List<T>();
+			foreach (var item in items)
+			{
+				list.Add(item);
+				if (split(item))
+				{
+					yield return list;
+					list = new();
+				}
+			}
+			if (list.Any())
+				yield return list;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="items"></param>
+		/// <param name="firstEntryIsDouble">when true, the first returned entry of [1, 2, 3] is (1, 1) - and then the regular (1, 2), (2, 3) ...</param>
+		/// <returns></returns>
+		public static IEnumerable<(T , T)> Paired<T>(this IEnumerable<T> items, bool firstEntryIsDouble = false)
+		{
+			if (items.Any())
+			{
+				var last = items.First();
+
+				if (firstEntryIsDouble)
+					yield return (last, last);
+
+				foreach (var item in items.Skip(1))
+				{
+					yield return (last, item);
+					last = item;
+				}
+			}
+		}
+	}
 }
