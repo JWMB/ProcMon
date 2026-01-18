@@ -1,6 +1,8 @@
 ﻿using Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using ProcServer.Services;
+using System.Net;
+using System.Web;
 
 namespace ProcServer
 {
@@ -18,7 +20,10 @@ namespace ProcServer
 			}).AddMvcOptions(options => options.Filters.Add<AuthorizePageHandlerFilter>());
 
 			services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-				.AddCookie();
+				.AddCookie(options =>
+				{
+					//options.LoginPath = "/Account/Login?";
+				});
 
 			services.AddControllers();
 
@@ -60,6 +65,12 @@ namespace ProcServer
 
 			//app.UseAuthentication();
 			app.UseAuthorization();
+			app.UseStatusCodePages(async context =>
+			{
+				var response = context.HttpContext.Response;
+				if (response.StatusCode == (int)HttpStatusCode.Unauthorized || response.StatusCode == (int)HttpStatusCode.Forbidden)
+					response.Redirect($"/Account/Login?ReturnUrl={HttpUtility.UrlEncode(context.HttpContext.Request.Path)}");
+			});
 
 			app.MapControllers();
 

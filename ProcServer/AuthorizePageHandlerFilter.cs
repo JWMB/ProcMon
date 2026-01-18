@@ -13,9 +13,7 @@ namespace ProcServer
 		private readonly IAuthorizationPolicyProvider policyProvider;
 		private readonly IPolicyEvaluator policyEvaluator;
 
-		public AuthorizePageHandlerFilter(
-			IAuthorizationPolicyProvider policyProvider,
-			IPolicyEvaluator policyEvaluator)
+		public AuthorizePageHandlerFilter(IAuthorizationPolicyProvider policyProvider, IPolicyEvaluator policyEvaluator)
 		{
 			this.policyProvider = policyProvider;
 			this.policyEvaluator = policyEvaluator;
@@ -66,7 +64,7 @@ namespace ProcServer
 				}
 				else
 				{
-					await httpContext.ChallengeAsync();
+					await httpContext.ChallengeAsync(); //new AuthenticationProperties { RedirectUri = "/Account/Login?"}
 				}
 
 				return;
