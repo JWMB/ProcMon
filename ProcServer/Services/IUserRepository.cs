@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using System.Security.Principal;
 
 namespace ProcServer.Services
 {
@@ -16,6 +17,28 @@ namespace ProcServer.Services
             };
 			return new ClaimsIdentity(claims, Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
 		}
+
+        public static User? CreateUser(ClaimsPrincipal? identity)
+        {
+            if (identity?.Identity?.IsAuthenticated != true)
+                return null;
+
+            var claims = new[]
+            {
+                ClaimTypes.Role,
+                ClaimTypes.Name
+            }.ToDictionary(o => o, o => identity.FindFirst(o)?.Value);
+
+            if (claims.Any(o => string.IsNullOrEmpty(o.Value)))
+                return null;
+
+            return new User
+            {
+                Password = "hidden",
+                Username = claims[ClaimTypes.Name]!,
+                Role = Enum.Parse<UserRole>(claims[ClaimTypes.Role]!)
+            };
+        }
 	}
 
     public enum UserRole

@@ -17,15 +17,13 @@ using Windows;
 //file = @"C:\Users\JonasBeckeman\source\repos\JWMB\ProcMon\ProcMon\bin\Release\net10.0\win-x64\publish\activity.log";
 //var aaa = ApplicationStats.Create(ApplicationStats.ParseLog(File.ReadAllText(file)));
 //var tmp = System.Text.Json.JsonSerializer.Serialize(aaa, new System.Text.Json.JsonSerializerOptions() { WriteIndented = true });
-var config = new FileMessageRepository.Config(new FileInfo(@"C:\Users\JonasBeckeman\Downloads\log.log"));
-//var aoa = new FileMessageRepository(config);
-var sessions = (await FileMessageRepository.GetEntriesFromFile(config.File))
-	.AsSessions(TimeSpan.FromHours(0.5))
-	.Where(o => o.Duration > TimeSpan.FromMinutes(5))
-	.ToList();
-var task = new WindowsEventLog().Listen(e => Console.WriteLine($"EEE {e.TaskDisplayName} {e.LogName} {e.ProviderName}"), CancellationToken.None);
-
-var start = new WindowsEventLog().GetLatestStart(DateTime.UtcNow.AddDays(-1));
+//var config = new FileMessageRepository.Config(new FileInfo(@"C:\Users\JonasBeckeman\Downloads\log.log"));
+//var sessions = (await FileMessageRepository.GetEntriesFromFile(config.File))
+//	.AsSessions(TimeSpan.FromHours(0.5))
+//	.Where(o => o.Duration > TimeSpan.FromMinutes(5))
+//	.ToList();
+//var task = new WindowsEventLog().Listen(e => Console.WriteLine($"EEE {e.TimeCreated} {e.TaskDisplayName} {e.LogName} {e.ProviderName} "), CancellationToken.None);
+//var start = new WindowsEventLog().GetLatestStart(DateTime.UtcNow.AddDays(-1));
 
 HostApplicationBuilder? hostBuilder = null;
 

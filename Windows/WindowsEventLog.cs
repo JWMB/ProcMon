@@ -4,6 +4,60 @@ using System.Runtime.CompilerServices;
 
 namespace Windows
 {
+	public class WindowsEventLogWatcher : IDisposable
+	{
+		private EventLogWatcher watcher;
+		public WindowsEventLogWatcher(EventLogQuery query)
+		{
+			// 			var query = new EventLogQuery("Security", PathType.LogName, "*[System/EventID=4624]");
+			watcher = new EventLogWatcher(query);
+			watcher.EventRecordWritten += new EventHandler<EventRecordWrittenEventArgs>(EventLogEventRead);
+			watcher.Enabled = true;
+		}
+
+		public void Dispose()
+		{
+			watcher.Enabled = false;
+			watcher.Dispose();
+		}
+
+		private void EventLogEventRead(object? obj, EventRecordWrittenEventArgs arg)
+		{
+			// Make sure there was no error reading the event.
+			if (arg.EventRecord == null)
+				return;
+
+			// XPath reference strings to select the properties that we want to display
+			var xPathRefs = new[]
+			{
+				"Event/System/TimeCreated/@SystemTime",
+				"Event/System/Computer",
+				"Event/EventData/Data[@Name=\"TargetUserName\"]",
+				"Event/EventData/Data[@Name=\"TargetDomainName\"]"
+			};
+			var logPropertyContext = new EventLogPropertySelector(xPathRefs);
+
+			var logEventProps = ((EventLogRecord)arg.EventRecord).GetPropertyValues(logPropertyContext);
+			//Log("Time: ", logEventProps[0]);
+			//Log("Computer: ", logEventProps[1]);
+			//Log("TargetUserName: ", logEventProps[2]);
+			//Log("TargetDomainName: ", logEventProps[3]);
+			//Log("---------------------------------------");
+			//Log("Description: ", arg.EventRecord.FormatDescription());
+			//catch (EventLogReadingException e)
+			//{
+			//}
+			//finally
+			//{
+			//	if (watcher != null)
+			//	{
+			//		watcher.Enabled = false;
+			//		watcher.Dispose();
+			//	}
+			//}
+		}
+	}
+
 	public class WindowsEventLog
 	{
 		public IEnumerable<EventLogEntry> GetFromSource(ILogSource source)
@@ -28,9 +82,11 @@ namespace Windows
 
 			await foreach (var e in IAsyncEnumerableExtensions.Interleave(cancellation, new[] { system, application }.Select(o => StreamLog(o, cancellation)).ToArray()))
 				callback(e);
+
+			Console.WriteLine("EEENNNNNNDDDD!");
 		}
 
-		private async IAsyncEnumerable<EventRecord> StreamLog(EventLogReader reader, CancellationToken cancellation)
+		private async IAsyncEnumerable<EventRecord> StreamLog(EventLogReader reader, [EnumeratorCancellation] CancellationToken cancellation)
 		{
 			while (cancellation.IsCancellationRequested == false)
 			{
@@ -185,6 +241,7 @@ namespace Windows
 	{
 		public static async IAsyncEnumerable<T> Interleave<T>([EnumeratorCancellation] CancellationToken token, IAsyncEnumerable<T>[] sources)
 		{
+			// https://stackoverflow.com/questions/70710153/how-to-merge-multiple-asynchronous-sequences-without-left-side-bias
 			if (sources.Length == 0)
 				yield break;
 			var enumerators = new List<(IAsyncEnumerator<T> e, Task<bool> t)>(sources.Length);

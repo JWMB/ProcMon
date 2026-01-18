@@ -11,9 +11,9 @@ Count: @Model.Entries.Count
 <div style="display: grid; grid-template-columns: 40% 60%;">
     <div>
 @{
-    foreach (var (date, stats) in Model.Stats)
+    foreach (var (date, duration, stats) in Model.Sessions)
     {
-        <h2>@date.ToString("yyyy-MM-dd HH:mm")</h2>
+        <h2>@date.ToString("yyyy-MM-dd HH:mm") @duration.ToString("%h")h @duration.ToString("%m")m</h2>
         <table>
             <thead>
                 <tr>
