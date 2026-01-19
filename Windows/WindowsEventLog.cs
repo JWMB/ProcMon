@@ -1,21 +1,29 @@
-﻿using System.Diagnostics;
+﻿using Common;
+using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace Windows
 {
 	public class WindowsEventLogWatcher : IDisposable
 	{
+		// TODO: https://learn.microsoft.com/en-us/dotnet/api/system.management.eventquery?view=net-10.0-pp&viewFallbackFrom=net-10.0
+
 		private EventLogWatcher watcher;
 		public WindowsEventLogWatcher(EventLogQuery query)
 		{
-			// 			var query = new EventLogQuery("Security", PathType.LogName, "*[System/EventID=4624]");
+			// var query = new EventLogQuery("Security", PathType.LogName, "*[System/EventID=4624]");
 			watcher = new EventLogWatcher(query);
 			watcher.EventRecordWritten += new EventHandler<EventRecordWrittenEventArgs>(EventLogEventRead);
 			watcher.Enabled = true;
 		}
 
-		public void Dispose()
+        public WindowsEventLogWatcher(string logName, string? filter = null)
+			: this(new EventLogQuery(logName, PathType.LogName, filter))
+		{ }
+
+        public void Dispose()
 		{
 			watcher.Enabled = false;
 			watcher.Dispose();
@@ -38,23 +46,64 @@ namespace Windows
 			var logPropertyContext = new EventLogPropertySelector(xPathRefs);
 
 			var logEventProps = ((EventLogRecord)arg.EventRecord).GetPropertyValues(logPropertyContext);
-			//Log("Time: ", logEventProps[0]);
-			//Log("Computer: ", logEventProps[1]);
-			//Log("TargetUserName: ", logEventProps[2]);
-			//Log("TargetDomainName: ", logEventProps[3]);
-			//Log("---------------------------------------");
+
+			var kvs = xPathRefs.Select((o, i) => $"{Regex.Match(o, @".*\W(\w+)\W*")?.Value.IfNullOrEmpty(o)}:{logEventProps[i]}");
+			Console.WriteLine(string.Join(", ", kvs));
 			//Log("Description: ", arg.EventRecord.FormatDescription());
-			//catch (EventLogReadingException e)
-			//{
-			//}
-			//finally
-			//{
-			//	if (watcher != null)
-			//	{
-			//		watcher.Enabled = false;
-			//		watcher.Dispose();
-			//	}
-			//}
+		}
+	}
+
+	public class EventLogQueryHelper
+	{
+		public static string CreateQueryString(DateTime? createdSince = null)
+		{
+			//var q = $"*[System/Provider/@Name=\"{KernelPowerLogSource.SourceName}\"]";
+			// https://learn.microsoft.com/en-us/previous-versions/bb671200(v=vs.90)
+			if (createdSince != null)
+			{
+				return $"*[System[TimeCreated[@SystemTime>='{createdSince.Value.ToUniversalTime().ToString("o")}']]]";
+			}
+			return "*";
+		}
+	}
+
+	public class MachineAwakeLog
+	{
+		public enum State
+		{
+			Off,
+			Hibernate,
+			Sleep,
+			Awake
+		}
+
+		private static State? X(EventLogEntryEx record) // EventRecord
+		{
+			return record.InstanceId switch
+			{
+				(int)KernelPowerLogSource.Instance.ExitStandby => State.Awake,
+				(int)KernelPowerLogSource.Instance.EnterStandby => State.Sleep,
+				_ => null
+			};
+			//return record.Task == (int)KernelPowerLogSource.Categories.ExitStandby || record.Id == (int)KernelPowerLogSource.Instance.ExitStandby ? State.Awake : State.Off;
+		}
+
+		public static IEnumerable<(DateTime When, State State)> Get(DateTime since)
+		{
+			var logReader = new WindowsEventLog();
+			var records = logReader.ReadFromLog(new KernelPowerLogSource(), EventLogQueryHelper.CreateQueryString(since))
+				.Where(o => o.ProviderName == KernelPowerLogSource.SourceName
+					//&& (o.Task == (int)KernelPowerLogSource.Categories.ExitStandby || o.Id == (int)KernelPowerLogSource.Instance.ExitStandby)
+					&& o.TimeCreated != null)
+				.Select(EventLogEntryEx.Create)
+				.Select(o => new { When = o.TimeGenerated, o.Source, o.InstanceId, NewState = X(o) });
+			//.Select(o => new { When = o.TimeCreated!.Value, o.Task, o.Id, NewState = X(o) });
+
+			var tmp = records.ToList();
+
+			return records
+				.Where(o => o.NewState != null)
+				.Select(o => (o.When, o.NewState!.Value));
 		}
 	}
 
@@ -95,22 +144,11 @@ namespace Windows
 			}
 		}
 
-		private string CreateQueryString(DateTime? createdSince = null)
-		{
-			//var q = $"*[System/Provider/@Name=\"{KernelPowerLogSource.SourceName}\"]";
-			// https://learn.microsoft.com/en-us/previous-versions/bb671200(v=vs.90)
-			if (createdSince != null)
-			{
-				return $"*[System[TimeCreated[@SystemTime>='{createdSince.Value.ToUniversalTime().ToString("o")}']]]";
-			}
-			return "*";
-		}
-
 		public DateTime? GetLatestStart(DateTime since)
 		{
 			try
 			{
-				return ReadFromLog(new KernelPowerLogSource(), CreateQueryString(since))
+				return ReadFromLog(new KernelPowerLogSource(), EventLogQueryHelper.CreateQueryString(since))
 					.Where(o => o.ProviderName == KernelPowerLogSource.SourceName
 						&& (o.Task == (int)KernelPowerLogSource.Categories.ExitStandby || o.Id == (int)KernelPowerLogSource.Instance.ExitStandby)
 						&& o.TimeCreated != null)
@@ -163,6 +201,7 @@ namespace Windows
 
 		public enum Instance
 		{
+			UnexpectedShutdown = 41, // The system has rebooted without cleanly shutting down first. https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/event-id-41-restart
 			PowerSourceChange = 105,
 			ConnectivityState = 172,
 			EnterStandby = 506,
@@ -171,11 +210,11 @@ namespace Windows
 		}
 	}
 
-	public class EventLogEntryEx
+	public class EventLogEntryWrapper
 	{
 		private readonly EventLogEntry entry;
 
-		public EventLogEntryEx(EventLogEntry entry)
+		public EventLogEntryWrapper(EventLogEntry entry)
 		{
 			this.entry = entry;
 		}
@@ -188,14 +227,49 @@ namespace Windows
 		//[Obsolete()]
 		//public int EventId => entry.EventID;
 		public long InstanceId => entry.InstanceId;
+	}
 
-		//public required string Message { get; set; }
-		//public required string Source { get; set; }
-		//public short CategoryNumber { get; set; }
-		//public DateTime TimeWritten { get; set; }
-		//public DateTime TimeGenerated { get; set; }
-		//public required string UserName { get; set; }
+	public class EventLogEntryEx
+	{
+		public EventLogEntryEx(EventLogEntry entry)
+		{
+			Message = entry.Message;
+			Source = entry.Source;
+			CategoryNumber = entry.CategoryNumber;
+			TimeWritten = entry.TimeWritten;
+			TimeGenerated = entry.TimeGenerated;
+			UserName = entry.UserName;
+			InstanceId = entry.InstanceId;
+		}
+        public EventLogEntryEx(EventRecord entry)
+        {
+			Message = entry.TaskDisplayName;
+			Source = entry.ProviderName;
+			//CategoryNumber = entry.CategoryNumber;
+			TimeWritten = DateTime.MinValue;
+			TimeGenerated = entry.TimeCreated ?? DateTime.MinValue;
+			UserName = entry.UserId.ToString();
+			InstanceId = entry.Id;
+		}
+		//[Obsolete()]
+		//public int EventId => entry.EventID;
 
+		public string Message { get; set; }
+		public string Source { get; set; }
+		public short CategoryNumber { get; set; }
+		public DateTime TimeWritten { get; set; }
+		public DateTime TimeGenerated { get; set; }
+		public string UserName { get; set; }
+		public long InstanceId { get; set; }
+
+		public static EventLogEntryEx Create(EventRecord entry)
+		{
+			return entry.ProviderName switch
+			{
+				KernelPowerLogSource.SourceName => new KernelPowerLogEventEntry(entry),
+				_ => new EventLogEntryEx(entry),
+			};
+		}
 		public static EventLogEntryEx Create(EventLogEntry entry)
 		{
 			//return new EventLogEntryEx
@@ -220,9 +294,11 @@ namespace Windows
 	public class KernelPowerLogEventEntry : EventLogEntryEx
 	{
 		public KernelPowerLogEventEntry(EventLogEntry entry) : base(entry) { }
+		public KernelPowerLogEventEntry(EventRecord entry) : base(entry) { }
 		public KernelPowerLogSource.Categories Category => (KernelPowerLogSource.Categories)CategoryNumber;
+		public KernelPowerLogSource.Instance InstanceType => (KernelPowerLogSource.Instance)InstanceId;
 
-		public override string ToString() => $"{Source} {Category} {TimeGenerated} {InstanceId} {Message}";
+		public override string ToString() => $"{Source} {Category} {TimeGenerated} {InstanceType} {Message}";
 	}
 
 

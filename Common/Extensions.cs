@@ -131,6 +131,16 @@ namespace Common
 		}
 	}
 
+	public static class StringExtensions
+	{
+		public static string IfNullOrEmpty(this string? value, string fallback)
+			=> string.IsNullOrEmpty(value) ? fallback : value;
+	}
+
+	public static class RegexMatchExtensions
+	{
+	}
+
 	public static class IEnumerableExtensions
 	{
 		public static IEnumerable<List<T>> SplitBy<T>(this IEnumerable<T> items, Func<T, bool> split)

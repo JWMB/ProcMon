@@ -25,6 +25,12 @@ using Windows;
 //var task = new WindowsEventLog().Listen(e => Console.WriteLine($"EEE {e.TimeCreated} {e.TaskDisplayName} {e.LogName} {e.ProviderName} "), CancellationToken.None);
 //var start = new WindowsEventLog().GetLatestStart(DateTime.UtcNow.AddDays(-1));
 
+//var watcher = new WindowsEventLogWatcher("Application");
+//for (int i = 0; i < 1 * 60; i++)
+//	await Task.Delay(TimeSpan.FromSeconds(1));
+
+var wakey = MachineAwakeLog.Get(DateTime.UtcNow.AddDays(-2)).ToList();
+
 HostApplicationBuilder? hostBuilder = null;
 
 IServiceCollection serviceCollection;
