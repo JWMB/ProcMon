@@ -6,4 +6,20 @@
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
+
+    @{
+            foreach (var item in Model.Sessions.GroupBy(o => o.Start.Date).OrderByDescending(o => o.Key))
+            {
+                var date = item.Key;
+                var totalDuration = item.Select(o => o.Duration).Aggregate((p, c) => p + c);
+                <h2>@date.ToString("yyyy-MM-dd") @totalDuration.ToString("%h")h @totalDuration.ToString("%m")m</h2>
+
+                foreach (var (dateTime, duration, stats) in item)
+                {
+                    <h3>@dateTime.ToString("HH:mm") @duration.ToString("%h")h @duration.ToString("%m")m</h3>
+                }
+            }
+    }
+
+    @* @Model.DurationToday.ToString("%h")h @Model.DurationToday.ToString("%m")m *@
 </div>

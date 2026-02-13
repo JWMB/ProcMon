@@ -1,4 +1,28 @@
-﻿using System.Text.RegularExpressions;
+﻿using Common;
+using System.Text.RegularExpressions;
+
+
+public record Session(DateTime Start, TimeSpan Duration, List<Session.AppTime> AppTimes)
+{
+	public record AppTime(string Application, TimeSpan Duration);
+	public static List<Session> GetSessions(IEnumerable<Entry> entries, TimeSpan? skipSessionsShorterThan = null)
+	{
+		var tsRounding = TimeSpanExtensions.TimeSpanPart.Minutes;
+
+		var result = entries
+			.AsSessions(TimeSpan.FromHours(0.5))
+			.Where(o => skipSessionsShorterThan == null ? true : o.Duration > skipSessionsShorterThan)
+			.Select(o => new Session(
+				o.Start,
+				o.Duration,
+				ApplicationStats.Create(o.Entries.Select(p => (p.Time, p.Message)))
+					.Select(p => new AppTime(p.Application, ApplicationStats.GetTotalTime(p.Events).Modulo(TimeSpanExtensions.CreateFullModuloUntil(tsRounding)))).ToList()
+				))
+			.OrderByDescending(o => o.Start)
+			.ToList();
+		return result;
+	}
+}
 
 public record Message(string Action, string Application, string Title, int Id = 0)
 {
@@ -53,6 +77,22 @@ public class ApplicationStats
 		public override string ToString() => $"{Time:dd/MM HH:mm:ss.fff} {Action} {Title}";
 	}
 
+	public static TimeSpan GetTotalTime(IEnumerable<Event> events)
+	{
+		var total = TimeSpan.Zero;
+		var firstIndex = events.Index().FirstOrDefault(o => o.Item.Action != "Defocus").Index;
+		var lastTime = events.Skip(firstIndex).First().Time;
+		var lastAction = "";
+		foreach (var e in events.Skip(firstIndex + 1))
+		{
+			if (lastAction != "Defocus")
+				total += e.Time - lastTime;
+			lastAction = e.Action;
+			lastTime = e.Time;
+		}
+		return total;
+	}
+
 	public static List<ApplicationStats> Create(IEnumerable<(DateTime Timestamp, Message Message)> messages)
 	{
 		var focusEvents = messages.Where(o => o.Message.Action == "Focus")
@@ -87,3 +127,4 @@ public class ApplicationStats
 		}).ToList();
 	}
 };
+

@@ -29,7 +29,7 @@ using Windows;
 //for (int i = 0; i < 1 * 60; i++)
 //	await Task.Delay(TimeSpan.FromSeconds(1));
 
-var wakey = MachineAwakeLog.Get(DateTime.UtcNow.AddDays(-2)).ToList();
+var wakey = MachineAwakeLog.Get(DateTime.UtcNow.AddHours(-1.5)).ToList();
 
 HostApplicationBuilder? hostBuilder = null;
 

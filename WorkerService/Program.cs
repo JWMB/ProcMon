@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Logging.EventLog;
 using ProcMon;
-using WorkerService;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -52,7 +51,7 @@ services.AddWindowsService(options =>
 	options.ServiceName = name;
 });
 
-services.AddHostedService<Worker>();
+services.AddHostedService<Windows.Worker>();
 LoggerProviderOptions.RegisterProviderOptions<EventLogSettings, EventLogLoggerProvider>(services);
 
 

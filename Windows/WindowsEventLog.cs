@@ -81,8 +81,14 @@ namespace Windows
 		{
 			return record.InstanceId switch
 			{
-				(int)KernelPowerLogSource.Instance.ExitStandby => State.Awake,
-				(int)KernelPowerLogSource.Instance.EnterStandby => State.Sleep,
+				(int)KernelPowerLogSource.Instance.ExitStandby 
+					or (int)KernelPowerLogSource.Instance.ResumeFromSleep => State.Awake,
+				(int)KernelPowerLogSource.Instance.EnterStandby
+					or (int)KernelPowerLogSource.Instance.EnterSleep => State.Sleep,
+				(int)KernelPowerLogSource.Instance.ShutdownInitiated
+					or (int)KernelPowerLogSource.Instance.PrepareReboot
+					or (int)KernelPowerLogSource.Instance.UnexpectedShutdown
+					=> State.Off,
 				_ => null
 			};
 			//return record.Task == (int)KernelPowerLogSource.Categories.ExitStandby || record.Id == (int)KernelPowerLogSource.Instance.ExitStandby ? State.Awake : State.Off;
@@ -96,14 +102,28 @@ namespace Windows
 					//&& (o.Task == (int)KernelPowerLogSource.Categories.ExitStandby || o.Id == (int)KernelPowerLogSource.Instance.ExitStandby)
 					&& o.TimeCreated != null)
 				.Select(EventLogEntryEx.Create)
-				.Select(o => new { When = o.TimeGenerated, o.Source, o.InstanceId, NewState = X(o) });
+				.Select(o => new { Row = o, When = o.TimeGenerated, o.Source, o.InstanceId, NewState = X(o) });
 			//.Select(o => new { When = o.TimeCreated!.Value, o.Task, o.Id, NewState = X(o) });
 
-			var tmp = records.ToList();
+			//var tmp = records.ToList();
 
-			return records
+			var result = records
 				.Where(o => o.NewState != null)
 				.Select(o => (o.When, o.NewState!.Value));
+
+			// TODO: after a shutdown (577/109), look for next transition (566) (or powersourcechange, 521?)
+			var shutDowns = records.Index()
+				.Where(o => 
+					o.Item.Row.InstanceId == (int)KernelPowerLogSource.Instance.ShutdownInitiated
+					|| o.Item.Row.InstanceId == (int)KernelPowerLogSource.Instance.UnexpectedShutdown
+					|| o.Item.Row.InstanceId == (int)KernelPowerLogSource.Instance.PrepareReboot).ToList();
+			foreach (var item in shutDowns)
+			{
+				var nextAwake = records.Skip(item.Index).FirstOrDefault(o => o.InstanceId == (int)KernelPowerLogSource.Instance.Transition || o.InstanceId == (int)KernelPowerLogSource.Instance.PowerSourceChange);
+				if (nextAwake !=null)
+					result = result.Concat([(nextAwake.When, State.Awake)]);
+			}
+			return result.OrderBy(o => o.When);
 		}
 	}
 
@@ -201,12 +221,21 @@ namespace Windows
 
 		public enum Instance
 		{
+			DriverStoppedTransition = 40, //36 The driver \Driver\vpcivsp for device ROOT\VPCIVSP\0000 stopped the power transition.
 			UnexpectedShutdown = 41, // The system has rebooted without cleanly shutting down first. https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/event-id-41-restart
-			PowerSourceChange = 105,
+			EnterSleep = 42, //64
+			PowerSourceChange = 105, //100
+			ResumeFromSleep = 107,
+			ShutdownInitiated = 109, //103 The kernel power manager has initiated a shutdown transition
+			ThermalZone = 125, //86
+			UserModeAttemptedStateChange = 187, // 102 User-mode process attempted to change the system state by calling SetSuspendState or SetSystemPowerState APIs.
 			ConnectivityState = 172,
 			EnterStandby = 506,
 			ExitStandby = 507,
-			Transition = 566
+			ActiveBatteryCount = 521, //220
+			Transition = 566,
+			PrepareReboot = 577 //280 The system has prepared for a system initiated reboot from Active.
+			//187 / 243 
 		}
 	}
 
@@ -248,7 +277,7 @@ namespace Windows
 			//CategoryNumber = entry.CategoryNumber;
 			TimeWritten = DateTime.MinValue;
 			TimeGenerated = entry.TimeCreated ?? DateTime.MinValue;
-			UserName = entry.UserId.ToString();
+			UserName = entry.UserId?.ToString() ?? "";
 			InstanceId = entry.Id;
 		}
 		//[Obsolete()]

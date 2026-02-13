@@ -10,27 +10,34 @@ Count: @Model.Entries.Count
 
 <div style="display: grid; grid-template-columns: 40% 60%;">
     <div>
-@{
-    foreach (var (date, duration, stats) in Model.Sessions)
-    {
-        <h2>@date.ToString("yyyy-MM-dd HH:mm") @duration.ToString("%h")h @duration.ToString("%m")m</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Application</th>
-                    <th>Total time</th>
-                </tr>
-            </thead>
-            @foreach (var (app, time) in stats)
+        @{
+            foreach (var item in Model.Sessions.GroupBy(o => o.Start.Date))
             {
-                <tr>
-                    <td><a href="?app=@app&date=@date">@app</a></td>
-                            <td>@time.ToString(@"hh\:mm", System.Globalization.CultureInfo.InvariantCulture)</td>
-                </tr>
+                var date = item.Key;
+                var totalDuration = item.Select(o => o.Duration).Aggregate((p, c) => p + c);
+                <h2>@date.ToString("yyyy-MM-dd") @totalDuration.ToString("%h")h @totalDuration.ToString("%m")m</h2>
+
+                foreach (var (dateTime, duration, stats) in item)
+                {
+                    <h3>@dateTime.ToString("HH:mm") @duration.ToString("%h")h @duration.ToString("%m")m</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Application</th>
+                                <th>Total time</th>
+                            </tr>
+                        </thead>
+                        @foreach (var (app, time) in stats)
+                        {
+                            <tr>
+                                <td><a href="?app=@app&date=@date">@app</a></td>
+                                        <td>@time.ToString(@"hh\:mm", System.Globalization.CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        }
+                    </table>
+                }
             }
-        </table>
-    }
-}
+        }
     </div>
     
     <div>
