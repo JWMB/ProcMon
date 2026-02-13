@@ -17,6 +17,9 @@ namespace ProcMon
 			configuration.GetSection("LogSender").Bind(c);
 			if (string.IsNullOrEmpty(c.Sender))
 				c = c with { Sender = Environment.UserName };
+
+			Console.WriteLine($"LogSender.Config: {c.Sender} {c.Endpoint}");
+
 			services.AddSingleton(c);
 			services.AddSingleton<ILogSender, LogSender>();
 

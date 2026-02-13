@@ -11,7 +11,7 @@ namespace ProcMon
 
     public class LogSender : ILogSender
 	{
-		public record Config(Uri Endpoint, int MinimumIntervalSeconds, string? Sender = null);
+		public record Config(Uri Endpoint, int MinimumIntervalSeconds, string? Sender = null, bool Active = true);
 		
         private readonly Config config;
         private readonly Func<HttpClient> clientFactory; // IHttpClientFactory
@@ -26,13 +26,17 @@ namespace ProcMon
 		private readonly int disableAfterNumConsecutiveFailures = 3;
 		private bool enabled = true;
 
-		public LogSender(Config config, Func<HttpClient> clientFactory, ILogger<LogSender> log) //IHttpClientFactory 
+		public LogSender(Config config, Func<HttpClient> clientFactory, ILogger<LogSender> log)
 		{
             this.config = config;
             this.clientFactory = clientFactory;
             this.log = log;
             minimumInterval = TimeSpan.FromSeconds(config.MinimumIntervalSeconds);
 			timeout = TimeSpan.FromSeconds(2);
+
+			enabled = config.Active;
+
+			log.LogInformation($"Enabled:{enabled} Timeout:{timeout}");
 		}
 
 		public async Task Send(IEnumerable<string> messages)

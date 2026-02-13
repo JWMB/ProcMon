@@ -84,7 +84,59 @@
             => innerGet.Get(since, sender);
 	}
 
-    public class FileMessageRepository : IMessageRepository, IDisposable
+	public class ReadonlyFileMessageRepository : IMessageReadOnlyRepository, IDisposable
+	{
+		private readonly Config config;
+		private FileStream? fs;
+		private StreamReader? sr;
+
+		public record Config(FileInfo File);
+		public ReadonlyFileMessageRepository(Config config)
+		{
+			this.config = config;
+		}
+
+		private async Task Init()
+		{
+			if (fs != null)
+				return;
+
+			//await GetEntriesFromFile(config.File);
+
+			fs = new FileStream(config.File.FullName, FileMode.Open, FileAccess.Read);
+			sr = new StreamReader(fs);
+		}
+
+		public void Dispose()
+		{
+			if (sr != null)
+			{
+				sr.Dispose();
+				sr = null;
+			}
+			if (fs != null)
+			{
+				fs.Dispose();
+				fs = null;
+			}
+		}
+
+		public async Task<List<Entry>> Get(DateTime since, string? sender = null)
+		{
+			await Init();
+			if (sr == null)
+				return [];
+			var pos = sr.BaseStream.Position;
+			var str = await sr.ReadLineAsync();
+			if (str != null)
+			{
+				var entry = Message.ParseLogLine(str);
+			}
+			return [];
+		}
+	}
+
+	public class FileMessageRepository : IMessageRepository, IDisposable
     {
         public record Config(FileInfo File);
 
