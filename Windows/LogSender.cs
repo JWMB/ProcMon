@@ -27,15 +27,28 @@ namespace ProcMon
 
 		private int NumConsecutiveFailures => history.TakeLastWhile(o => o.Item2 != null).Count();
 
+		private bool IsRetryable(Exception ex)
+		{
+			return ex is TaskCanceledException; // TODO: timeout
+		}
+
 		public bool ShouldTry
 		{
 			get
 			{
 				if (NumConsecutiveFailures < disableAfterNumConsecutiveFailures)
 					return true;
-				var timeSinceLast = DateTime.UtcNow - history.Last().Item1;
-				if (timeSinceLast > TimeSpan.FromMinutes(2))
+
+				var last = history.Last();
+				if (last.Item2 == null)
 					return true;
+
+				if (IsRetryable(last.Item2))
+				{
+					var timeSinceLast = DateTime.UtcNow - last.Item1;
+					if (timeSinceLast > TimeSpan.FromMinutes(2))
+						return true;
+				}
 				return false;
 			}
 		}
