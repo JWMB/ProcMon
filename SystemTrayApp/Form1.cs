@@ -1,9 +1,26 @@
 using Common;
+using System.Runtime.InteropServices;
 
 namespace SystemTrayApp
 {
 	public partial class Form1 : Form
 	{
+		[StructLayout(LayoutKind.Sequential)]
+		private struct RECT
+		{
+			public int Left;
+			public int Top;
+			public int Right;
+			public int Bottom;
+		}
+
+		[DllImport("user32.dll")]
+		private static extern IntPtr WindowFromPoint(Point Point);
+
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+
 		private NotifyIcon notifyIcon;
 		private readonly IMessageGetLastestRepository messageRepository;
 		private List<Entry> Entries = new List<Entry>();
@@ -16,7 +33,6 @@ namespace SystemTrayApp
 			notifyIcon = new NotifyIcon();
 			InitializeNotifyIcon(notifyIcon);
 
-			//cached = (DateTime.UtcNow.AddDays(-2), []);
 			this.messageRepository = messageRepository;
 		}
 
@@ -59,7 +75,7 @@ namespace SystemTrayApp
 				if (latest != null)
 					return $"{latest.Start:HH:mm} - {latest.Start.Add(latest.Duration):HH:mm} ({$"{latest.Duration.ToString("%h")}h{latest.Duration.ToString("%m")}m"})";
 			}
-			return $"X";
+			return $"...";
 		}
 
 		private async void NotifyIcon_MouseMove(object? sender, MouseEventArgs e)
@@ -76,25 +92,26 @@ namespace SystemTrayApp
 		{
 			if (e.Button == MouseButtons.Left)
 			{
+				var hwnd = WindowFromPoint(MousePosition);
+				if (hwnd != IntPtr.Zero)
+				{
+					if (GetWindowRect(hwnd, out RECT rect))
+					{
+						Bounds = Rectangle.FromLTRB(rect.Left, rect.Top - 200, rect.Right, rect.Top); // rect.Bottom
+
+						//var f = new Form
+						//{
+						//	StartPosition = FormStartPosition.Manual,
+						//	TransparencyKey = BackColor,
+						//	ControlBox = false,
+						//	Text = string.Empty,
+						//	FormBorderStyle = FormBorderStyle.FixedSingle,
+						//	Bounds = Rectangle.FromLTRB(rect.Left, rect.Top, rect.Right, rect.Bottom)
+						//};
+						//f.Show();
+					}
+				}
 				Show();
-				//MessageBox.Show("Hey!");
-				//var hwnd = WindowFromPoint(MousePosition);
-				//if (hwnd != IntPtr.Zero)
-				//{
-				//	if (GetWindowRect(hwnd, out RECT rect))
-				//	{
-				//		var f = new Form
-				//		{
-				//			StartPosition = FormStartPosition.Manual,
-				//			TransparencyKey = BackColor,
-				//			ControlBox = false,
-				//			Text = string.Empty,
-				//			FormBorderStyle = FormBorderStyle.FixedSingle,
-				//			Bounds = Rectangle.FromLTRB(rect.Left, rect.Top, rect.Right, rect.Bottom)
-				//		};
-				//		f.Show();
-				//	}
-				//}
 			}
 		}
 	}
