@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace SystemTrayApp
 {
-	public partial class Form1 : Form
+	public partial class MainForm : Form
 	{
 		[StructLayout(LayoutKind.Sequential)]
 		private struct RECT
@@ -25,7 +25,7 @@ namespace SystemTrayApp
 		private readonly IMessageGetLastestRepository messageRepository;
 		private List<Entry> Entries = new List<Entry>();
 
-		public Form1(IMessageGetLastestRepository messageRepository)
+		public MainForm(IMessageGetLastestRepository messageRepository)
 		{
 			InitializeComponent();
 			FormClosing += Form1_FormClosing;
@@ -97,18 +97,7 @@ namespace SystemTrayApp
 				{
 					if (GetWindowRect(hwnd, out RECT rect))
 					{
-						Bounds = Rectangle.FromLTRB(rect.Left, rect.Top - 200, rect.Right, rect.Top); // rect.Bottom
-
-						//var f = new Form
-						//{
-						//	StartPosition = FormStartPosition.Manual,
-						//	TransparencyKey = BackColor,
-						//	ControlBox = false,
-						//	Text = string.Empty,
-						//	FormBorderStyle = FormBorderStyle.FixedSingle,
-						//	Bounds = Rectangle.FromLTRB(rect.Left, rect.Top, rect.Right, rect.Bottom)
-						//};
-						//f.Show();
+						Bounds = Rectangle.FromLTRB(rect.Left, rect.Top - 200, rect.Right, rect.Top);
 					}
 				}
 				Show();
