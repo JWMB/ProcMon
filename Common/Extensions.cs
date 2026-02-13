@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Common
+﻿namespace Common
 {
     public static class TimeSpanExtensions
     {
@@ -79,7 +77,6 @@ namespace Common
 
 	public static class FileSystemInfoExtensions
 	{
-
 		public static string? ResolveSpecialFolder(string folder, char? surrounding = '%')
 		{
 			if (surrounding.HasValue)
@@ -181,6 +178,11 @@ namespace Common
 					last = item;
 				}
 			}
+		}
+
+		public static IEnumerable<TSource> TakeLastWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+		{
+			return source.Reverse().TakeWhile(predicate);
 		}
 	}
 }

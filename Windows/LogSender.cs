@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Common;
+using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 
 namespace ProcMon
@@ -9,7 +10,80 @@ namespace ProcMon
         Task Send(IEnumerable<string> messages);
 	}
 
-    public class LogSender : ILogSender
+	public interface IRetryStrategy
+	{
+		bool ShouldTry { get; }
+		void RegisterResult(Exception? exception);
+	}
+	public class RetryStrategy : IRetryStrategy
+	{
+		private int disableAfterNumConsecutiveFailures;
+		private List<(DateTime, Exception?)> history = new();
+
+		public RetryStrategy(int disableAfterNumConsecutiveFailures = 3)
+		{
+			this.disableAfterNumConsecutiveFailures = disableAfterNumConsecutiveFailures;
+		}
+
+		private int NumConsecutiveFailures => history.TakeLastWhile(o => o.Item2 != null).Count();
+
+		public bool ShouldTry
+		{
+			get
+			{
+				if (NumConsecutiveFailures < disableAfterNumConsecutiveFailures)
+					return true;
+				var timeSinceLast = DateTime.UtcNow - history.Last().Item1;
+				if (timeSinceLast > TimeSpan.FromMinutes(2))
+					return true;
+				return false;
+			}
+		}
+
+		public void RegisterResult(Exception? exception)
+		{
+			history.Add((DateTime.UtcNow, exception));
+			if (history.Count > 10)
+				history.RemoveAt(1);
+
+			if (exception == null)
+			{
+				//numConsecutiveFailures = 0;
+			}
+			else
+			{
+				if (exception is TaskCanceledException tcEx)
+				{
+					//numConsecutiveFailures++;
+					if (NumConsecutiveFailures >= disableAfterNumConsecutiveFailures)
+					{
+						//if (numConsecutiveFailures == disableAfterNumConsecutiveFailures)
+							//log.LogError($"Disabled after {numConsecutiveFailures} timeouts");
+					}
+				}
+				else if (exception is NotSupportedException nsEx)
+				{
+					//log.LogError(nsEx, $"{messages.Count()} messages");
+					Console.WriteLine(nsEx);
+				}
+				else
+				{
+					//log.LogError(ex, $"{numConsecutiveFailures}");
+					if (exception.Message.Contains("InternalServerError"))
+					{
+					}
+					else
+					{
+						// TODO: Ignore this exception?
+					}
+					Console.WriteLine(exception);
+				}
+			}
+		}
+	}
+
+
+	public class LogSender : ILogSender
 	{
 		public record Config(Uri Endpoint, int MinimumIntervalSeconds, string? Sender = null, bool Active = true);
 		
@@ -22,9 +96,8 @@ namespace ProcMon
 		private TimeSpan timeout;
 		private SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
-		private int numConsecutiveFailures = 0;
-		private readonly int disableAfterNumConsecutiveFailures = 3;
 		private bool enabled = true;
+		private readonly IRetryStrategy retryStrategy;
 
 		public LogSender(Config config, Func<HttpClient> clientFactory, ILogger<LogSender> log)
 		{
@@ -37,12 +110,16 @@ namespace ProcMon
 			enabled = config.Active;
 
 			log.LogInformation($"Enabled:{enabled} Timeout:{timeout}");
+			retryStrategy = new RetryStrategy();
 		}
 
 		public async Task Send(IEnumerable<string> messages)
 		{
 			if (!enabled)
 				return;
+			if (!retryStrategy.ShouldTry)
+				return;
+
 			await semaphore.WaitAsync();
 			unsent.AddRange(messages);
 
@@ -52,38 +129,17 @@ namespace ProcMon
 				try
 				{
 					await SendInternal(unsent);
+					retryStrategy.RegisterResult(null);
 					lastSent = now;
 					unsent.Clear();
-					numConsecutiveFailures = 0;
-				}
-				catch (TaskCanceledException tcEx)
-				{
-					numConsecutiveFailures++;
-					if (numConsecutiveFailures >= disableAfterNumConsecutiveFailures)
-					{
-						enabled = false;
-						if (numConsecutiveFailures == disableAfterNumConsecutiveFailures)
-							log.LogError($"Disabled after {numConsecutiveFailures} timeouts");
-					}
-				}
-				catch (NotSupportedException nsEx)
-				{
-					log.LogError(nsEx, $"{messages.Count()} messages");
-					Console.WriteLine(nsEx);
-					enabled = false;
 				}
 				catch (Exception ex)
 				{
-					log.LogError(ex, $"{numConsecutiveFailures}");
-					numConsecutiveFailures++;
-					if (ex.Message.Contains("InternalServerError"))
-					{
-						enabled = false;
-					}
-					else
-					{
-					}
+					retryStrategy.RegisterResult(ex);
+					//log.LogError("", ex);
 					Console.WriteLine(ex);
+					if (!retryStrategy.ShouldTry)
+						log.LogError($"Disabled");
 				}
 			}
 			semaphore.Release();

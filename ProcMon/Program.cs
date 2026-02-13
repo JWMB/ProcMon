@@ -137,7 +137,10 @@ void ProcessExit(string message)
 	logger.Log(LogLevel.Information, message);
 	cancelSource.Cancel();
 	if (exiting)
-		Environment.Exit(1);
+	{
+		//Environment.FailFast("No probl");
+		Environment.Exit(0);
+	}
 	//	message += " - already exiting";
 	exiting = true;
 

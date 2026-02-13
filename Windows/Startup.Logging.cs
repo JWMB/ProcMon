@@ -26,13 +26,10 @@ namespace ProcMon
 			var filepath = configuration["LogFile"]; //"activity.log";
 			if (!string.IsNullOrEmpty(filepath))
 			{
-				// throw new ArgumentNullException("No log file path provided");
 				var path = new FileInfo(filepath).Resolve();
 				filepath = path.FullName;
 				if (!path.Exists)
 				{
-					//using var f = path.OpenWrite();
-					//f.Close();
 					try
 					{
 						File.WriteAllText(path.FullName, "");
@@ -52,11 +49,14 @@ namespace ProcMon
 					c.TimestampFormat = "yyyy-MM-dd HH:mm:ss";
 				});
 				if (!string.IsNullOrEmpty(filepath))
+				{
+					Console.WriteLine($"AddAppendingFileLogger: {filepath}");
 					config.AddAppendingFileLogger(c =>
-					{
-						c.CategoryToFilePath.Add("^(?!Microsoft|System).*$", filepath);
-						//c.Filepath = filepath;
-					});
+						{
+							c.CategoryToFilePath.Add("^(?!Microsoft|System).*$", filepath);
+							//c.Filepath = filepath;
+						});
+				}
 
 				//var otelSection = configuration.GetSection("OTel");
 				//var otelSettings = new { Endpoint = otelSection["OTEL_EXPORTER_OTLP_ENDPOINT"]!, Headers = otelSection["OTEL_EXPORTER_OTLP_HEADERS"]! };
