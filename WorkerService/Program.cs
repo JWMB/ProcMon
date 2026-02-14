@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Logging.EventLog;
 using ProcMon;
+using Windows;
 
 var builder = Host.CreateApplicationBuilder(args);
 

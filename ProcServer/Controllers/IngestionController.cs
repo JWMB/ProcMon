@@ -31,6 +31,10 @@ namespace ProcServer.Controllers
 			// POST { "Messages": ["2025-12-14T22:27:18.70 {\"Action\":\"Start\",\"Application\":\"tposd\",\"Title\":\"\",\"Id\":5820}"] }
 			var msgs = dto.Messages.Select(o => o.Trim()).Where(o => o.Any()).ToList();
 
+            //TypedResults.Problem(statusCode: 502)
+            //await Task.Delay(TimeSpan.FromMinutes(1));
+            //return new ActionResult<int>(new ActionResult())
+
             foreach (var msg in msgs)
             {
 				var dict = logItemParser.Parse(msg);

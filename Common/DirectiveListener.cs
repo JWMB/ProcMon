@@ -1,6 +1,6 @@
-﻿using ProcServer.Controllers;
+﻿using Common.Models;
 
-namespace Windows
+namespace Common
 {
     public interface IDirectiveListener
     {

@@ -1,4 +1,4 @@
-﻿namespace ProcServer.Controllers
+﻿namespace Common.Models
 {
     public class Directive
 	{

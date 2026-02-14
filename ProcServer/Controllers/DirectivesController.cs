@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Common.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ProcServer.Controllers
 {

@@ -2,99 +2,13 @@
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 
-namespace ProcMon
+namespace Common
 {
     // TODO: implement as OLTP
     public interface ILogSender
     {
         Task Send(IEnumerable<string> messages);
 	}
-
-	public interface IRetryStrategy
-	{
-		bool ShouldTry { get; }
-		void RegisterResult(Exception? exception);
-	}
-	public class RetryStrategy : IRetryStrategy
-	{
-		private int disableAfterNumConsecutiveFailures;
-		private List<(DateTime, Exception?)> history = new();
-
-		public RetryStrategy(int disableAfterNumConsecutiveFailures = 3)
-		{
-			this.disableAfterNumConsecutiveFailures = disableAfterNumConsecutiveFailures;
-		}
-
-		private int NumConsecutiveFailures => history.TakeLastWhile(o => o.Item2 != null).Count();
-
-		private bool IsRetryable(Exception ex)
-		{
-			return ex is TaskCanceledException; // TODO: timeout
-		}
-
-		public bool ShouldTry
-		{
-			get
-			{
-				if (NumConsecutiveFailures < disableAfterNumConsecutiveFailures)
-					return true;
-
-				var last = history.Last();
-				if (last.Item2 == null)
-					return true;
-
-				if (IsRetryable(last.Item2))
-				{
-					var timeSinceLast = DateTime.UtcNow - last.Item1;
-					if (timeSinceLast > TimeSpan.FromMinutes(2))
-						return true;
-				}
-				return false;
-			}
-		}
-
-		public void RegisterResult(Exception? exception)
-		{
-			history.Add((DateTime.UtcNow, exception));
-			if (history.Count > 10)
-				history.RemoveAt(1);
-
-			if (exception == null)
-			{
-				//numConsecutiveFailures = 0;
-			}
-			else
-			{
-				if (exception is TaskCanceledException tcEx)
-				{
-					//numConsecutiveFailures++;
-					if (NumConsecutiveFailures >= disableAfterNumConsecutiveFailures)
-					{
-						//if (numConsecutiveFailures == disableAfterNumConsecutiveFailures)
-							//log.LogError($"Disabled after {numConsecutiveFailures} timeouts");
-					}
-				}
-				else if (exception is NotSupportedException nsEx)
-				{
-					//log.LogError(nsEx, $"{messages.Count()} messages");
-					Console.WriteLine(nsEx);
-				}
-				else
-				{
-					//log.LogError(ex, $"{numConsecutiveFailures}");
-					if (exception.Message.Contains("InternalServerError"))
-					{
-					}
-					else
-					{
-						// TODO: Ignore this exception?
-					}
-					Console.WriteLine(exception);
-				}
-			}
-		}
-	}
-
 
 	public class LogSender : ILogSender
 	{
@@ -123,7 +37,7 @@ namespace ProcMon
 			enabled = config.Active;
 
 			log.LogInformation($"Enabled:{enabled} Timeout:{timeout}");
-			retryStrategy = new RetryStrategy();
+			retryStrategy = new RetryStrategy(new(DisableAfterNumConsecutiveFailures: 3, IntervalBeforeRetry: TimeSpan.FromMinutes(2)));
 		}
 
 		public async Task Send(IEnumerable<string> messages)
@@ -149,6 +63,8 @@ namespace ProcMon
 				catch (Exception ex)
 				{
 					retryStrategy.RegisterResult(ex);
+					// TODO: Maybe add as an unsent message - interesting for server to know about it
+					//unsent.Add()
 					//log.LogError("", ex);
 					Console.WriteLine(ex);
 					if (!retryStrategy.ShouldTry)
@@ -180,7 +96,8 @@ namespace ProcMon
 			if (!res.IsSuccessStatusCode)
 			{
 				var content = await res.Content.ReadAsStringAsync();
-				throw new Exception($"{res.StatusCode}: {content}");
+				throw new HttpRequestException(message: content, null, statusCode: res.StatusCode);
+				//throw new Exception($"{res.StatusCode}: {content}");
 			}
 		}
 	}

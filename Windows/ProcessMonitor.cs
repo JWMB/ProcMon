@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Common;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
