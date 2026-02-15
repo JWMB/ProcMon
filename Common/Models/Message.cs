@@ -44,7 +44,16 @@ public record Message(string Action, string Application, string Title, int Id = 
 		Message? message = null;
 		if (jsonStart >= 0)
 		{
-			message = System.Text.Json.JsonSerializer.Deserialize<Message>(line.Substring(jsonStart));
+
+			var str = line.Substring(jsonStart);
+			try
+			{
+				message = System.Text.Json.JsonSerializer.Deserialize<Message>(str);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"{ex.Message}: '{str}'");
+			}
 		}
 		else
 		{

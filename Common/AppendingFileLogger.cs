@@ -100,6 +100,7 @@ public class AppendingFileLogger : IDisposable, ILogger
 	private readonly FileStream? fs;
 	private readonly StreamWriter? sw;
 	private readonly string? filePath;
+	private readonly List<string> unwrittenMessages = new();
 	private DateTime lastFlush = DateTime.MinValue;
 
 	private bool isDisposed = false;
@@ -115,10 +116,17 @@ public class AppendingFileLogger : IDisposable, ILogger
 			(fs, sw) = OpenWrite(filePath);
 		this.filePath = filePath;
 	}
-	private (FileStream, StreamWriter) OpenWrite(string filePath)
+	private (FileStream?, StreamWriter?) OpenWrite(string filePath)
 	{
-		var fs = new FileStream(filePath, FileMode.Append, FileAccess.Write);
-		return (fs, new StreamWriter(fs));
+		try
+		{
+			var fs = new FileStream(filePath, FileMode.Append, FileAccess.Write);
+			return (fs, new StreamWriter(fs));
+		}
+		catch (IOException ioEx) when ((ioEx.HResult & 0x0000FFFF) == 32)
+		{
+			return (null, null);
+		}
 	}
 
 	public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
@@ -128,6 +136,11 @@ public class AppendingFileLogger : IDisposable, ILogger
 	{
 		if (isDisposed) return;
 		isDisposed = true;
+
+		if (unwrittenMessages.Any())
+		{
+			TryWrite(null);
+		}
 
 		sw?.Flush();
 		sw?.Dispose();
@@ -144,6 +157,12 @@ public class AppendingFileLogger : IDisposable, ILogger
 		var formatted = $">{DateTime.Now:yyyy-MM-dd HH:mm:ss}: {message}";
 		//Console.WriteLine(formatted);
 
+		if (TryWrite(formatted))
+			unwrittenMessages.Add(formatted);
+	}
+
+	private bool TryWrite(string? formatted)
+	{
 		var swLocal = sw;
 		FileStream? fsLocal = null;
 		if (swLocal == null)
@@ -152,9 +171,16 @@ public class AppendingFileLogger : IDisposable, ILogger
 				throw new Exception("x");
 			(fsLocal, swLocal) = OpenWrite(filePath);
 		}
+		if (swLocal == null)
+			return false;
 
-		//await sw.WriteLineAsync(formatted);
-		swLocal.WriteLine(formatted);
+		var copy = new List<string>(unwrittenMessages);
+		unwrittenMessages.Clear();
+
+		foreach (var item in copy)
+			swLocal.WriteLine(item);
+		if (formatted?.Any() == true)
+			swLocal.WriteLine(formatted);
 
 		if ((DateTime.Now - lastFlush).TotalSeconds > 5 || sw == null)
 		{
@@ -167,5 +193,6 @@ public class AppendingFileLogger : IDisposable, ILogger
 				fsLocal?.Dispose();
 			}
 		}
+		return true;
 	}
 }

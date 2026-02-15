@@ -24,7 +24,7 @@ namespace Common
 		private SemaphoreSlim semaphore = new SemaphoreSlim(1);
 
 		private bool enabled = true;
-		private readonly IRetryStrategy retryStrategy;
+		private readonly IShouldTryStrategy shouldTryStrategy;
 
 		public LogSender(Config config, Func<HttpClient> clientFactory, ILogger<LogSender> log)
 		{
@@ -37,14 +37,14 @@ namespace Common
 			enabled = config.Active;
 
 			log.LogInformation($"Enabled:{enabled} Timeout:{timeout}");
-			retryStrategy = new RetryStrategy(new(DisableAfterNumConsecutiveFailures: 3, IntervalBeforeRetry: TimeSpan.FromMinutes(2)));
+			shouldTryStrategy = new ShouldTryStrategy(new(DisableAfterNumConsecutiveFailures: 3, IntervalBeforeRetry: TimeSpan.FromMinutes(2)));
 		}
 
 		public async Task Send(IEnumerable<string> messages)
 		{
 			if (!enabled)
 				return;
-			if (!retryStrategy.ShouldTry)
+			if (!shouldTryStrategy.ShouldTry)
 				return;
 
 			await semaphore.WaitAsync();
@@ -56,18 +56,18 @@ namespace Common
 				try
 				{
 					await SendInternal(unsent);
-					retryStrategy.RegisterResult(null);
+					shouldTryStrategy.RegisterResult(null);
 					lastSent = now;
 					unsent.Clear();
 				}
 				catch (Exception ex)
 				{
-					retryStrategy.RegisterResult(ex);
+					shouldTryStrategy.RegisterResult(ex);
 					// TODO: Maybe add as an unsent message - interesting for server to know about it
 					//unsent.Add()
 					//log.LogError("", ex);
 					Console.WriteLine(ex);
-					if (!retryStrategy.ShouldTry)
+					if (!shouldTryStrategy.ShouldTry)
 						log.LogError($"Disabled");
 				}
 			}

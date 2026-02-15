@@ -1,93 +1,85 @@
-﻿using System.Net;
-
-namespace Common
+﻿namespace Common
 {
 	public interface IRetryStrategy
 	{
-		bool ShouldTry { get; }
-		void RegisterResult(Exception? exception);
+		Task<TResult> Execute<TResult>(Func<Task<TResult>> action, Func<List<(TResult?, Exception?)>, bool>? retryable = null);
+		Task<TResult?> ExecuteOrDefault<TResult>(Func<Task<TResult>> action, TResult? defaultValue, Func<List<(TResult?, Exception?)>, bool>? retryable = null);
+	}
+
+	public static class IRetryStrategyExtensions
+	{
+		public static async Task ExecuteNoReturn(this IRetryStrategy strategy, Func<Task> action, Func<List<Exception>, bool>? retryable = null)
+		{
+			Func<List<(bool, Exception?)>, bool>? adaptedRetryable = retryable == null ? null
+				: lst => {
+					return retryable(lst.Select(o => o.Item2).OfType<Exception>().ToList());
+				};
+			await strategy.Execute(async () => {
+				await action();
+				return true;
+			}, adaptedRetryable);
+		}
+
 	}
 
 	public class RetryStrategy : IRetryStrategy
 	{
 		private readonly Config config;
-		private List<(DateTime, Exception?)> history = new();
 
-		public record Config(
-			int DisableAfterNumConsecutiveFailures = 3,
-			TimeSpan? IntervalBeforeRetry = null);
-
+		public record Config(TimeSpan Pause, int MaxTries);
 		public RetryStrategy(Config config)
 		{
 			this.config = config;
 		}
 
-		private int NumConsecutiveFailures => history.TakeLastWhile(o => o.Item2 != null).Count();
-
-		private bool IsRetryable(Exception ex)
+		public async Task<TResult?> ExecuteOrDefault<TResult>(Func<Task<TResult>> action, TResult? defaultValue, Func<List<(TResult?, Exception?)>, bool>? retryable = null)
 		{
-			return ex is TaskCanceledException ||
-				(ex is HttpRequestException hre 
-					&& hre.StatusCode.HasValue 
-					&& new[] { HttpStatusCode.BadGateway, HttpStatusCode.ServiceUnavailable }.Contains(hre.StatusCode.Value));
-		}
-
-		public bool ShouldTry
-		{
-			get
+			try
 			{
-				if (NumConsecutiveFailures < config.DisableAfterNumConsecutiveFailures)
-					return true;
-
-				var last = history.Last();
-
-				if (last.Item2 == null)
-					return true;
-
-				if (IsRetryable(last.Item2))
-				{
-					if (config.IntervalBeforeRetry != null)
-					{
-						var timeSinceLast = DateTime.UtcNow - last.Item1;
-						if (timeSinceLast > config.IntervalBeforeRetry)
-							return true;
-					}
-				}
-				return false;
+				return await Execute(action, retryable);
+			}
+			catch
+			{
+				return defaultValue; 
 			}
 		}
 
-		public void RegisterResult(Exception? exception)
+		public async Task<TResult> Execute<TResult>(Func<Task<TResult>> action, Func<List<(TResult?, Exception?)>, bool>? retryable = null)
 		{
-			history.Add((DateTime.UtcNow, exception));
-			if (history.Count > 10)
-				history.RemoveAt(1);
+			List<(TResult?, Exception?)> history = new();
 
-			//if (exception is TaskCanceledException tcEx)
-			//{
-			//	if (NumConsecutiveFailures >= config.DisableAfterNumConsecutiveFailures)
-			//	{
-			//		//if (numConsecutiveFailures == disableAfterNumConsecutiveFailures)
-			//		//log.LogError($"Disabled after {numConsecutiveFailures} timeouts");
-			//	}
-			//}
-			//else if (exception is NotSupportedException nsEx)
-			//{
-			//	//log.LogError(nsEx, $"{messages.Count()} messages");
-			//	Console.WriteLine(nsEx);
-			//}
-			//else
-			//{
-			//	//log.LogError(ex, $"{numConsecutiveFailures}");
-			//	if (exception.Message.Contains("InternalServerError"))
-			//	{
-			//	}
-			//	else
-			//	{
-			//		// TODO: Ignore this exception?
-			//	}
-			//	Console.WriteLine(exception);
-			//}
+			for (int i = 0; i < config.MaxTries; i++)
+			{
+				TResult result;
+				//bool canRetry = true;
+				try
+				{
+					result = await action();
+					if (retryable == null)
+						return result;
+
+					if (!ShouldRetry(result, null))
+						return result;
+				}
+				catch (Exception ex)
+				{
+					if (!ShouldRetry(default, ex))
+						throw;
+				}
+
+				await Task.Delay(config.Pause);
+			}
+
+			throw new Exception("Never succeeded");
+
+			bool ShouldRetry(TResult? result, Exception? ex)
+			{
+				if (retryable == null)
+					return true;
+
+				history.Add((result, ex));
+				return retryable(history);
+			}
 		}
 	}
 }
