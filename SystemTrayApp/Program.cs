@@ -1,4 +1,5 @@
 using Common;
+using Common.MessageRepositories;
 
 namespace SystemTrayApp
 {
@@ -18,9 +19,9 @@ namespace SystemTrayApp
 				new (DateTime.UtcNow.AddMinutes(-1), new Message("Stop", "Shell", "E"), null),
 				];
 			
-			var logFile = "";
+			var logFile = @"C:\Users\JonasBeckeman\AppData\Roaming\activity.log";
 			var fi = new FileInfo(logFile);
-			IMessageReadOnlyRepository repo = fi.Exists ? new ReadonlyFileMessageRepository(new(fi)) : new InMemoryMessageRepository(() => fakeMsgs);
+			IMessageReadOnlyRepository repo = fi.Exists ? new ReadonlyFileMessageRepository(new(fi, false)) : new InMemoryMessageRepository(() => fakeMsgs);
 
 			ApplicationConfiguration.Initialize();
 			IMessageGetLastestRepository messageRepo = new CachingReadonlyRepository(repo);

@@ -54,17 +54,13 @@ namespace SystemTrayApp
 		{
 			if (disposing)
 			{
-				if (_mainForm != null)
-				{
+				//if (_mainForm != null)
+				//{
 					if (!_mainForm.IsDisposed)
-					{
 						_mainForm.Dispose();
-					}
-
-					_mainForm = null;
-				}
+				//	_mainForm = null;
+				//}
 			}
-
 			base.Dispose(disposing);
 		}
 	}

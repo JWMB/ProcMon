@@ -20,6 +20,7 @@ namespace Common
 				}
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex.ToString());
 					// Log error
 				}
 			}

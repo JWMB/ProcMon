@@ -55,6 +55,7 @@ namespace Windows
 					config.AddAppendingFileLogger(c =>
 						{
 							c.CategoryToFilePath.Add("^(?!Microsoft|System).*$", filepath);
+							c.KeepFileOpen = false;
 							//c.Filepath = filepath;
 						});
 				}

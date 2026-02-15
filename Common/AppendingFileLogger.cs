@@ -13,11 +13,11 @@ public static class AppendingFileLoggerExtensions
 	{
 		builder.AddConfiguration();
 		builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, AppendingFileLoggerProvider>());
-		LoggerProviderOptions.RegisterProviderOptions<AppendingFileLogger.Config, AppendingFileLoggerProvider>(builder.Services);
+		LoggerProviderOptions.RegisterProviderOptions<AppendingFileLoggerProvider.Config, AppendingFileLoggerProvider>(builder.Services);
 		return builder;
 	}
 
-	public static ILoggingBuilder AddAppendingFileLogger(this ILoggingBuilder builder, Action<AppendingFileLogger.Config> configure)
+	public static ILoggingBuilder AddAppendingFileLogger(this ILoggingBuilder builder, Action<AppendingFileLoggerProvider.Config> configure)
 	{
 		builder.AddAppendingFileLogger();
 		builder.Services.Configure(configure);
@@ -27,13 +27,23 @@ public static class AppendingFileLoggerExtensions
 
 public sealed class AppendingFileLoggerProvider : ILoggerProvider
 {
+	public class Config
+	{
+		public Dictionary<string, string> CategoryToFilePath { get; set; } = new();
+		public string Filepath { get; set; } = string.Empty;
+		/// <summary>
+		/// If false, file will be opened for each write - decreases performance when lots of logging
+		/// </summary>
+		public bool KeepFileOpen { get; set; } = true;
+	}
+
 	private readonly IDisposable? _onChangeToken;
-	private AppendingFileLogger.Config _currentConfig;
+	private Config _currentConfig;
 	
 	private static readonly ConcurrentDictionary<string, ILogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
 	private static readonly ConcurrentDictionary<string, FileStream> pathToFilestream = new(StringComparer.OrdinalIgnoreCase);
 
-	public AppendingFileLoggerProvider(IOptionsMonitor<AppendingFileLogger.Config> config)
+	public AppendingFileLoggerProvider(IOptionsMonitor<Config> config)
 	{
 		// called each time providers are requested from DI container - using statics to handle multiple instances
 		_currentConfig = config.CurrentValue;
@@ -63,13 +73,22 @@ public sealed class AppendingFileLoggerProvider : ILoggerProvider
 			filePath = _currentConfig.Filepath;
 		}
 
-		var fs = pathToFilestream.GetOrAdd(filePath, name => new FileStream(filePath, FileMode.Append, FileAccess.Write));
-		return _loggers.GetOrAdd(filePath, name => new AppendingFileLogger(fs));
+		if (_currentConfig.KeepFileOpen)
+		{
+			var fs = pathToFilestream.GetOrAdd(filePath, name => new FileStream(filePath, FileMode.Append, FileAccess.Write));
+			return _loggers.GetOrAdd(filePath, name => new AppendingFileLogger(fs));
+		}
+		else
+		{
+			return _loggers.GetOrAdd(filePath, name => new AppendingFileLogger(filePath, false));
+		}
 	}
 
 	public void Dispose()
 	{
 		foreach (var item in pathToFilestream.Values)
+			item.Dispose();
+		foreach (var item in _loggers.Values.OfType<IDisposable>())
 			item.Dispose();
 		_loggers.Clear();
 		_onChangeToken?.Dispose();
@@ -78,14 +97,9 @@ public sealed class AppendingFileLoggerProvider : ILoggerProvider
 
 public class AppendingFileLogger : IDisposable, ILogger
 {
-	public class Config
-	{
-		public Dictionary<string, string> CategoryToFilePath { get; set; } = new();
-		public string Filepath { get; set; } = string.Empty;
-	}
-
-	private FileStream? fs;
-	private StreamWriter sw;
+	private readonly FileStream? fs;
+	private readonly StreamWriter? sw;
+	private readonly string? filePath;
 	private DateTime lastFlush = DateTime.MinValue;
 
 	private bool isDisposed = false;
@@ -95,10 +109,16 @@ public class AppendingFileLogger : IDisposable, ILogger
 		sw = new StreamWriter(fs);
 	}
 
-	public AppendingFileLogger(string filePath)
+	public AppendingFileLogger(string filePath, bool keepOpen)
 	{
-		fs = new FileStream(filePath, FileMode.Append, FileAccess.Write);
-		sw = new StreamWriter(fs);
+		if (keepOpen)
+			(fs, sw) = OpenWrite(filePath);
+		this.filePath = filePath;
+	}
+	private (FileStream, StreamWriter) OpenWrite(string filePath)
+	{
+		var fs = new FileStream(filePath, FileMode.Append, FileAccess.Write);
+		return (fs, new StreamWriter(fs));
 	}
 
 	public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
@@ -109,8 +129,8 @@ public class AppendingFileLogger : IDisposable, ILogger
 		if (isDisposed) return;
 		isDisposed = true;
 
-		sw.Flush();
-		sw.Dispose();
+		sw?.Flush();
+		sw?.Dispose();
 
 		fs?.Dispose();
 	}
@@ -124,13 +144,28 @@ public class AppendingFileLogger : IDisposable, ILogger
 		var formatted = $">{DateTime.Now:yyyy-MM-dd HH:mm:ss}: {message}";
 		//Console.WriteLine(formatted);
 
-		//await sw.WriteLineAsync(formatted);
-		sw.WriteLine(formatted);
-
-		if ((DateTime.Now - lastFlush).TotalSeconds > 5)
+		var swLocal = sw;
+		FileStream? fsLocal = null;
+		if (swLocal == null)
 		{
-			sw.Flush();
+			if (filePath == null)
+				throw new Exception("x");
+			(fsLocal, swLocal) = OpenWrite(filePath);
+		}
+
+		//await sw.WriteLineAsync(formatted);
+		swLocal.WriteLine(formatted);
+
+		if ((DateTime.Now - lastFlush).TotalSeconds > 5 || sw == null)
+		{
+			swLocal.Flush();
 			lastFlush = DateTime.Now;
+
+			if (sw == null)
+			{
+				swLocal.Dispose();
+				fsLocal?.Dispose();
+			}
 		}
 	}
 }

@@ -59,6 +59,7 @@ namespace ProcMon
 				}
 				catch (Exception ex)
 				{
+					Console.WriteLine(ex.ToString());
 				}
 			}
 			//Console.WriteLine("Exited loop");

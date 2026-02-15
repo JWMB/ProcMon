@@ -35,7 +35,8 @@ HostApplicationBuilder? hostBuilder = null;
 
 IServiceCollection serviceCollection;
 IConfiguration configuration;
-if (true)
+var useHostBuilder = true;
+if (useHostBuilder)
 {
 	hostBuilder = Host.CreateApplicationBuilder();
 	ConfigureConfig(hostBuilder.Configuration);
