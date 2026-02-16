@@ -40,61 +40,53 @@
 			var start = 0L;
 			var end = sr.BaseStream.Length;
 
-			var rx = new System.Text.RegularExpressions.Regex(@"(?<=>)(?<date>\d{4}-\d{2}-\d{2})[T\s]?(?<time>\d{2}:\d{2}:\d{2}(\.\d{1,4})?)");
+			//var rx = new System.Text.RegularExpressions.Regex(@"(?<=>)(?<date>\d{4}-\d{2}-\d{2})[T\s]?(?<time>\d{2}:\d{2}:\d{2}(\.\d{1,4})?)");
 
 			var dict = new SortedDictionary<long, DateTime>();
 			while (true)
 			{
 				var pos = (start + end) / 2;
 				sr.BaseStream.Position = pos;
-				var s = await retry.ExecuteOrDefault(async () =>
+				var date = await retry.ExecuteOrDefault(async () =>
 				{
-					var p1 = sr.BaseStream.Position;
-					var l1 = await sr.ReadLineAsync();
-					if (l1?.Any() == true)
+					for (int i = 0; i <= 1; i++)
 					{
-						var m = rx.Match(l1);
-						if (m.Success)
+						var p1 = sr.BaseStream.Position;
+						var l1 = await sr.ReadLineAsync();
+						if (l1?.Any() == true)
 						{
-							return l1;
+							var tmp = Message.ParseDate(l1);
+							if (tmp != null)
+								return tmp;
+							//var m = rx.Match(l1);
+							//if (m.Success)
+							//	return m.Value;
 						}
 					}
-
-					var p2 = sr.BaseStream.Position;
-					var l2 = await sr.ReadLineAsync();
-					var p3 = sr.BaseStream.Position;
-
-					if (l2 != null)
-					{
-						if (System.Text.RegularExpressions.Regex.Matches(l2, @"\{").Count > 1 || l2.Contains("\n"))
-						{ }
-						var tmp = Message.ParseLogLine(l2);
-						return l2;
-					}
-					return string.Empty;
+					return null;
 				}, null);
 
-				if (s == null)
+				if (date == null)
 					return null;
 
 				if (end - start < 50)
 					return start;
 
-				var parsed = Message.ParseLogLine(s);
-				DateTime date;
-				if (parsed.HasValue)
-				{
-					date = parsed.Value.Item1;
-				}
-				else
-				{
-					var dateMatch = rx.Match(s);
-					if (dateMatch.Success)
-						date = DateTime.Parse(dateMatch.Value);
-					else
-						return null;
-				}
-				dict.Add(pos, date);
+				//var parsed = Message.ParseLogLine(s);
+				//DateTime date;
+				//if (parsed.HasValue)
+				//{
+				//	date = parsed.Value.Item1;
+				//}
+				//else
+				//{
+				//	var dateMatch = rx.Match(s);
+				//	if (dateMatch.Success)
+				//		date = DateTime.Parse(dateMatch.Value);
+				//	else
+				//		return null;
+				//}
+				dict.Add(pos, date.Value);
 
 				if (findDate < date)
 					end = pos;

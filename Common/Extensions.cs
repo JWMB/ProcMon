@@ -1,4 +1,6 @@
-﻿namespace Common
+﻿using System.Diagnostics;
+
+namespace Common
 {
     public static class TimeSpanExtensions
     {
@@ -136,6 +138,25 @@
 
 	public static class RegexMatchExtensions
 	{
+	}
+
+	public static class JsonSerializerExtensions
+	{
+		[DebuggerHidden]
+		[DebuggerNonUserCode]
+		public static TValue? TryDeserialize<TValue>(
+			[System.Diagnostics.CodeAnalysis.StringSyntax(System.Diagnostics.CodeAnalysis.StringSyntaxAttribute.Json)] string json,
+			System.Text.Json.JsonSerializerOptions? options = null)
+		{
+			try
+			{
+				return System.Text.Json.JsonSerializer.Deserialize<TValue>(json, options);
+			}
+			catch
+			{
+				return default;
+			}
+		}
 	}
 
 	public static class IEnumerableExtensions

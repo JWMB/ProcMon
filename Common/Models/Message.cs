@@ -33,26 +33,33 @@ public record Message(string Action, string Application, string Title, int Id = 
 			.OfType<(DateTime, Message)>().ToList();
 	}
 
-	public static (DateTime, Message)? ParseLogLine(string line)
+	public static DateTime? ParseDate(string line)
 	{
+		var rx = new Regex(@"(?<=>)(?<date>\d{4}-\d{2}-\d{2})[T\s]?(?<time>\d{2}:\d{2}:\d{2}(\.\d{1,4})?)");
 		//>2025-11-28 18:25:37: {"Action":"Focus","Application":"Taskmgr","Title":"","Id":9000}
-		var m = Regex.Match(line, @"\d{4}-\d{2}-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d+)?");
+		//var m = Regex.Match(line, @"\d{4}-\d{2}-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d+)?");
+		var m = rx.Match(line);
 		if (!m.Success)
 			return null;
-		var timestamp = DateTime.Parse(m.Value);
+		return DateTime.Parse(m.Value);
+	}
+
+	public static (DateTime, Message)? ParseLogLine(string line)
+	{
+		var timestamp = ParseDate(line);
+		if (timestamp == null)
+			return null;
+
 		var jsonStart = line.IndexOf("{");
 		Message? message = null;
 		if (jsonStart >= 0)
 		{
 
 			var str = line.Substring(jsonStart);
-			try
+			message = JsonSerializerExtensions.TryDeserialize<Message>(str);
+			if (message == null)
 			{
-				message = System.Text.Json.JsonSerializer.Deserialize<Message>(str);
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"{ex.Message}: '{str}'");
+				Console.WriteLine($"JSON error in: '{str}'");
 			}
 		}
 		else
@@ -64,7 +71,7 @@ public record Message(string Action, string Application, string Title, int Id = 
 		}
 		if (message == null)
 			return null;
-		return (timestamp, message);
+		return (timestamp.Value, message);
 	}
 
 }
