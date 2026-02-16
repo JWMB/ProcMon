@@ -46,7 +46,9 @@
 			while (true)
 			{
 				var pos = (start + end) / 2;
-				sr.BaseStream.Position = pos;
+				sr.DiscardBufferedData();
+				sr.BaseStream.Seek(pos, SeekOrigin.Begin);
+				//sr.BaseStream.Position = pos;
 				var date = await retry.ExecuteOrDefault(async () =>
 				{
 					for (int i = 0; i <= 1; i++)
@@ -58,9 +60,6 @@
 							var tmp = Message.ParseDate(l1);
 							if (tmp != null)
 								return tmp;
-							//var m = rx.Match(l1);
-							//if (m.Success)
-							//	return m.Value;
 						}
 					}
 					return null;
@@ -69,23 +68,9 @@
 				if (date == null)
 					return null;
 
-				if (end - start < 50)
+				if (end - start <= 300)
 					return start;
 
-				//var parsed = Message.ParseLogLine(s);
-				//DateTime date;
-				//if (parsed.HasValue)
-				//{
-				//	date = parsed.Value.Item1;
-				//}
-				//else
-				//{
-				//	var dateMatch = rx.Match(s);
-				//	if (dateMatch.Success)
-				//		date = DateTime.Parse(dateMatch.Value);
-				//	else
-				//		return null;
-				//}
 				dict.Add(pos, date.Value);
 
 				if (findDate < date)
@@ -116,7 +101,8 @@
 
 					if (pos != null)
 					{
-						sr.BaseStream.Position = pos.Value;
+						sr.BaseStream.Seek(pos.Value, SeekOrigin.Begin);
+						sr.DiscardBufferedData();
 						var str = await retry.ExecuteOrDefault(async () => await sr.ReadToEndAsync() ?? "", null);
 						if (str?.Any() == true)
 						{
