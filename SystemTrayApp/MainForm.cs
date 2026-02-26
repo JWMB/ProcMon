@@ -1,4 +1,5 @@
 using Common;
+using System.Data;
 using System.Runtime.InteropServices;
 
 namespace SystemTrayApp
@@ -38,10 +39,11 @@ namespace SystemTrayApp
 
 		public async Task GetLatestData()
 		{
-			if (!Entries.Any())
-				Entries = await messageRepository.Get(DateTime.UtcNow.AddDays(-2));
-			else
-				Entries = await messageRepository.Get();
+			Entries = await messageRepository.Get(DateTime.UtcNow.AddDays(-2));
+			//if (!Entries.Any())
+			//	Entries = await messageRepository.Get(DateTime.UtcNow.AddDays(-2));
+			//else
+			//	Entries = await messageRepository.Get();
 		}
 
 		private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
@@ -78,13 +80,17 @@ namespace SystemTrayApp
 			return $"...";
 		}
 
+		private DateTime lastMouseMove = DateTime.MinValue;
 		private async void NotifyIcon_MouseMove(object? sender, MouseEventArgs e)
 		{
+			if ((DateTime.UtcNow - lastMouseMove).TotalMilliseconds < 100)
+				return;
 			if (Entries.Any() == false || (DateTime.UtcNow - Entries.Last().Time).TotalSeconds > 30)
 			{
 				await GetLatestData();
 				notifyIcon.Text = GetShortInfo();
 			}
+			lastMouseMove = DateTime.UtcNow;
 			notifyIcon.Text = GetShortInfo();
 		}
 
@@ -100,6 +106,22 @@ namespace SystemTrayApp
 						Bounds = Rectangle.FromLTRB(rect.Left, rect.Top - 200, rect.Right, rect.Top);
 					}
 				}
+
+				var dt = new DataTable();
+				dt.Columns.AddRange(new[] { "Start", "Duration" }.Select(o => new DataColumn(o, typeof(string))).ToArray());
+
+				var sessions = Session.GetSessions(Entries);
+				sessions.OrderByDescending(o => o.Start)
+					.Select(o => new[] { o.Start.ToString("yyyy-MM-dd HH:mm"), o.Duration.ToString(@"hh\hmm\m") })
+				.Select(o =>
+				{
+					var dr = dt.NewRow();
+					dr.ItemArray = o;
+					return dr;
+				})
+				.ToList().ForEach(dt.Rows.Add);
+
+				dataGridView1.DataSource = dt;
 				Show();
 			}
 		}
