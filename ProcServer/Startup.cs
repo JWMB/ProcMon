@@ -53,6 +53,28 @@ namespace ProcServer
 
 		public void Configure(WebApplication app)
 		{
+			var logger = app.Services.GetService<ILogger>() ?? app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+			logger!.LogInformation($"Configuring application");
+
+			var config = app.Services.GetRequiredService<IConfiguration>();
+			var pathBase = Environment.GetEnvironmentVariable("ASPNETCORE_APPL_PATH").IfNullOrEmpty(config["AppSettings:BasePath"] ?? "");
+			logger.LogInformation($"Using pathBase? {pathBase}");
+			if (pathBase?.Any() == true)
+			{
+				Console.WriteLine($"Using pathBase={pathBase}");
+				app.Use(async (ctx, next) =>
+				{
+					ctx.Request.PathBase = pathBase;
+					await next();
+					if (ctx.Response.StatusCode == 302)
+					{
+						var l = ctx.Response.Headers.Location.FirstOrDefault();
+						if (l?.StartsWith("/") == true)
+							ctx.Response.Headers.Location = $"{pathBase}{l}";
+					}
+				});
+			}
+
 			// Configure the HTTP request pipeline.
 			if (!app.Environment.IsDevelopment())
 			{
